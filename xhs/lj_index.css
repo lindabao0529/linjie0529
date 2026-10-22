@@ -1,0 +1,163 @@
+/* 顶部导航 黑底 */
+.lj_header{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    padding:12px 16px;
+    font-size:18px;
+    background-color:#000;
+}
+.lj_header_left, .lj_header_right{
+    width: 40px;
+}
+.lj_header_menu{
+    color:#fff;
+}
+.lj_header_search_icon{
+    color:#fff;
+    text-align:right;
+}
+.lj_header_tab{
+    display:flex;
+    gap:32px;
+}
+.lj_header_tab span.active{
+    color:#ffffff;
+    font-weight:bold;
+    border-bottom:2px solid red;
+}
+.lj_header_tab span{
+    color:#777777;
+}
+/* 分类标签栏 */
+.lj_category_tab{
+    display:flex;
+    gap:24px;
+    padding:10px 16px;
+    font-size:16px;
+    background-color:#000;
+    overflow-x: auto;
+}
+.lj_category_tab span.active{
+    color:#ffffff;
+    font-weight:bold;
+}
+.lj_category_tab span{
+    color:#777777;
+}
+/* 搜索下拉框 */
+.lj_search_drop {
+    position: absolute;
+    top: 90px;
+    right:16px;
+    background-color: #1a1a1a;
+    color:#fff;
+    border-radius: 10px;
+    padding: 6px 0;
+    min-width: 140px;
+    display: none;
+    z-index: 20;
+}
+.search-item {
+    padding: 8px 14px;
+    font-size: 13px;
+}
+.search-item:hover{
+    background:#2c2c2c;
+}
+/* 卡片容器：两列网格 */
+.lj_card_wrap{
+    padding:0 8px;
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:12px;
+    background-color:#000;
+    /* 留出底部导航空间，防止卡片被底部栏遮挡 */
+    padding-bottom:70px;
+}
+.lj_card{
+    overflow:hidden;
+}
+.lj_card_img {
+    overflow: hidden;  /* 超出容器的图片隐藏，关键！ */
+    border-radius:10px;
+}
+.lj_card_img img{
+    width:100%;
+    object-fit:cover;
+    transition: transform 0.3s ease; /* 过渡动画，平滑放大 */
+}
+/* 鼠标悬浮图片放大 1.08倍，数值可以自己调，1.05~1.15之间最合适 */
+.lj_card_img:hover img {
+    transform: scale(1.08);
+}
+
+.lj_card_title{
+    font-size:14px;
+    margin:6px 4px;
+    line-height:1.4;
+    color:#fff;
+}
+/* 卡片底部 */
+.lj_card_bottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:4px;
+}
+.lj_card_user{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    color:#bbbbbb;
+}
+.lj_card_user img{
+    width:20px;
+    height:20px;
+    border-radius:50%;
+}
+.lj_card_like{
+    font-size:12px;
+    color:#bbbbbb;
+}
+/* 底部导航栏 */
+.lj_tabbar{
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+    padding:8px 0;
+    position:fixed;
+    bottom:0;
+    left:0;
+    width:100%;
+    background:#000;
+    border-top:1px solid #222;
+}
+.lj_tab_item{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    font-size:12px;
+    color:#777;
+}
+.lj_tab_item.active{
+    color:#ffffff;
+}
+.lj_tab_icon{
+    width:22px;
+    height:22px;
+    margin-bottom:4px;
+}
+/* 中间加号按钮 */
+.add-circle{
+    width:36px;
+    height:36px;
+    background-color:#ff2442;
+    color:white;
+    border-radius:8px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:24px;
+}

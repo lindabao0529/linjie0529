@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>svg0529 · SVG 底部导航</title>
+  <!-- SVG 方式：引入本地 iconfont.js（运行时向页面注入 symbol 精灵图） -->
+  <script src="font/iconfont.js"></script>
+  <style>
+    /* 规则：所有类名/ID/变量以 linjie_ 开头 */
+    :root {
+      --linjie_bg: #F6F6F7;        /* 应用底色 */
+      --linjie_card: #FFFFFF;
+      --linjie_ink: #333333;       /* 与图标字库默认填充一致 */
+      --linjie_sub: #8A8A90;
+      --linjie_accent: #D4237A;    /* 取自字库 prompt-copy 的填充色 */
+      --linjie_alert: #FA5151;     /* 徽章红 */
+      --linjie_line: #ECECEE;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--linjie_bg);
+      color: var(--linjie_ink);
+    }
+
+    /* ---------- 应用顶栏 ---------- */
+    .linjie_appbar {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: var(--linjie_card);
+      border-bottom: 1px solid var(--linjie_line);
+    }
+
+    .linjie_appbar_inner {
+      max-width: 480px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+    }
+
+    .linjie_appbar h1 {
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .linjie_home {
+      font-size: 12px;
+      color: var(--linjie_accent);
+      text-decoration: none;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      padding: 4px 12px;
+    }
+
+    .linjie_home:focus-visible {
+      outline: 2px solid var(--linjie_accent);
+      outline-offset: 2px;
+    }
+
+    /* ---------- 内容区：全库陈列 ---------- */
+    .linjie_main {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 20px 16px calc(96px + env(safe-area-inset-bottom));
+    }
+
+    .linjie_intro {
+      font-size: 13px;
+      color: var(--linjie_sub);
+      line-height: 1.8;
+      margin-bottom: 16px;
+    }
+
+    .linjie_intro code {
+      font-size: 12px;
+      color: var(--linjie_ink);
+    }
+
+    .linjie_lib {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      border: 1px solid var(--linjie_line);
+      background: var(--linjie_line);
+    }
+
+    .linjie_lib_item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 18px 4px 12px;
+      background: var(--linjie_card);
+    }
+
+    .linjie_lib_glyph {
+      width: 26px;
+      height: 26px;
+      fill: currentColor;
+      color: var(--linjie_ink);
+    }
+
+    .linjie_lib_item span:last-child {
+      font-size: 11px;
+      color: var(--linjie_sub);
+    }
+
+    /* ---------- 固定底部导航：4 等分自适应宽度 ---------- */
+    .linjie_nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10;
+      background: var(--linjie_card);
+      border-top: 1px solid var(--linjie_line);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .linjie_nav_bar {
+      max-width: 480px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .linjie_nav_item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 9px 0 10px;
+      text-decoration: none;
+      color: var(--linjie_sub);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .linjie_nav_item:focus-visible {
+      outline: 2px solid var(--linjie_accent);
+      outline-offset: -2px;
+    }
+
+    .linjie_nav_icon {
+      position: relative;
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      transition: transform 0.15s ease;
+    }
+
+    .linjie_nav_item:active .linjie_nav_icon {
+      transform: scale(0.88);
+    }
+
+    /* SVG 图标：currentColor 继承文字颜色（配合 JS 去除 symbol 内写死的 fill） */
+    .linjie_nav_glyph {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    .linjie_nav_label {
+      font-size: 11px;
+    }
+
+    .linjie_active {
+      color: var(--linjie_accent);
+    }
+
+    /* ---------- 徽章与红点：图标右上角 ---------- */
+    .linjie_badge {
+      position: absolute;
+      top: -4px;
+      right: -10px;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      border-radius: 999px;
+      background: var(--linjie_alert);
+      border: 2px solid var(--linjie_card);
+      color: #fff;
+      font-size: 10px;
+      font-style: normal;
+      line-height: 12px;
+      text-align: center;
+    }
+
+    .linjie_dot {
+      position: absolute;
+      top: 0;
+      right: -2px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--linjie_alert);
+      border: 2px solid var(--linjie_card);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .linjie_nav_icon { transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="linjie_appbar">
+    <div class="linjie_appbar_inner">
+      <h1>svg0529 图标库</h1>
+      <a class="linjie_home" href="index.html">返回首页</a>
+    </div>
+  </header>
+
+  <main class="linjie_main">
+    <p class="linjie_intro">
+      图标以 SVG 方式渲染：脚本把 symbol 精灵图注入页面，
+      用 <code>&lt;use href="#icon-xxx"&gt;</code> 取用。
+      运行时去掉 symbol 内写死的 fill，让图标颜色跟随文字（currentColor）。
+    </p>
+
+    <ul class="linjie_lib">
+      <li class="linjie_lib_item"><svg class="linjie_lib_glyph" aria-hidden="true"><use href="#icon-browser"></use></svg><span>browser</span></li>
+      <li class="linjie_lib_item"><svg class="linjie_lib_glyph" aria-hidden="true"><use href="#icon-imgage"></use></svg><span>imgage</span></li>
+      <li class="linjie_lib_item"><svg class="linjie_lib_glyph" aria-hidden="true"><use href="#icon-love"></use></svg><span>love</span></li>
+      <li class="linjie_lib_item"><svg class="linjie_lib_glyph" aria-hidden="true"><use href="#icon-wifi"></use></svg><span>wifi</span></li>
+      <li class="linjie_lib_item"><svg class="linjie_lib_glyph" aria-hidden="true"><use href="#icon-amount"></use></svg><span>amount</span></li>
+      <li class="linjie_lib_item"><svg class="linjie_lib_glyph" aria-hidden="true"><use href="#icon-camera"></use></svg><span>camera</span></li>
+      <li class="linjie_lib_item"><svg class="linjie_lib_glyph" aria-hidden="true"><use href="#icon-prompt"></use></svg><span>prompt</span></li>
+      <li class="linjie_lib_item"><svg class="linjie_lib_glyph" aria-hidden="true"><use href="#icon-prompt-copy"></use></svg><span>prompt-copy</span></li>
+    </ul>
+  </main>
+
+  <!-- 固定底部导航 -->
+  <nav class="linjie_nav" aria-label="页面导航">
+    <div class="linjie_nav_bar">
+      <a class="linjie_nav_item linjie_active" href="#">
+        <span class="linjie_nav_icon"><svg class="linjie_nav_glyph" aria-hidden="true"><use href="#icon-browser"></use></svg></span>
+        <span class="linjie_nav_label">首页</span>
+      </a>
+      <a class="linjie_nav_item" href="#">
+        <span class="linjie_nav_icon">
+          <svg class="linjie_nav_glyph" aria-hidden="true"><use href="#icon-imgage"></use></svg>
+          <span class="linjie_dot" role="img" aria-label="相册有新内容"></span>
+        </span>
+        <span class="linjie_nav_label">相册</span>
+      </a>
+      <a class="linjie_nav_item" href="#">
+        <span class="linjie_nav_icon">
+          <svg class="linjie_nav_glyph" aria-hidden="true"><use href="#icon-prompt"></use></svg>
+          <span class="linjie_badge">6</span>
+        </span>
+        <span class="linjie_nav_label">消息</span>
+      </a>
+      <a class="linjie_nav_item" href="#">
+        <span class="linjie_nav_icon"><svg class="linjie_nav_glyph" aria-hidden="true"><use href="#icon-love"></use></svg></span>
+        <span class="linjie_nav_label">收藏</span>
+      </a>
+    </div>
+  </nav>
+
+  <script>
+    // 规则：所有 JS 变量以 linjie_ 开头
+    // 1) 去除 symbol 内写死的 fill 颜色，让图标可以跟随 currentColor 换色
+    document.addEventListener('DOMContentLoaded', function () {
+      var linjie_allPaths = document.querySelectorAll('symbol path[fill]');
+      for (var linjie_k = 0; linjie_k < linjie_allPaths.length; linjie_k++) {
+        linjie_allPaths[linjie_k].removeAttribute('fill');
+      }
+    });
+
+    // 2) 点击切换导航选中态
+    var linjie_navItems = document.querySelectorAll('.linjie_nav_item');
+    for (var linjie_i = 0; linjie_i < linjie_navItems.length; linjie_i++) {
+      linjie_navItems[linjie_i].addEventListener('click', function (linjie_e) {
+        linjie_e.preventDefault();
+        for (var linjie_j = 0; linjie_j < linjie_navItems.length; linjie_j++) {
+          linjie_navItems[linjie_j].classList.remove('linjie_active');
+        }
+        this.classList.add('linjie_active');
+      });
+    }
+  </script>
+</body>
+</html>

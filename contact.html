@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>联系我 - 林洁的自我介绍</title>
+    <link rel="stylesheet" href="./html_basic.css">
+</head>
+<body>
+    <h1>联系我</h1>
+    <p>欢迎给我留言，我会尽快回复！</p>
+
+    <!-- 从 index.html 原样搬过来的表单 -->
+    <form action="#" name="fm" method="post">
+        <p>你的姓名：
+            <input type="text" placeholder="请输入你的姓名" required>
+        </p>
+        <p>
+            <label for="email">你的邮箱：</label>
+            <input type="email" name="email" id="email" placeholder="you@example.com">
+        </p>
+        <p>
+            上传附件：
+            <input type="file" name="file" id="file" multiple>
+        </p>
+        <p>
+            性别：
+            <input type="radio" name="gender" value="f" checked>女
+            <input type="radio" name="gender" value="m">男
+        </p>
+        <p> 
+            兴趣爱好：
+            <input type="checkbox" name="hobby" value="game">打游戏
+            <input type="checkbox" name="hobby" value="movie">看电影
+            <input type="checkbox" name="hobby" value="read">看书
+        </p>
+        <p>
+            给我留言：
+            <textarea name="intro" id="intro" cols="30" rows="5" placeholder="想对我说点什么……"></textarea>
+        </p>
+        <p>
+            所在地区：
+            <select name="city" id="city">
+                <option value="ordos" selected>鄂尔多斯</option>
+                <option value="beijing">北京</option>
+                <option value="shanghai">上海</option>
+                <option value="guangzhou">广州</option>
+            </select>
+        </p>
+        <p>
+            <input type="submit" value="发送留言">
+            <input type="reset" value="重置">
+            <input type="button" value="取消">
+        </p>
+    </form>
+
+    <!-- 返回主页的链接 -->
+    <p><a href="index.html">← 返回主页</a></p>
+</body>
+</html>

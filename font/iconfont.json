@@ -1,0 +1,65 @@
+{
+  "id": "5238919",
+  "name": "svg0529",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "48570042",
+      "name": "browser",
+      "font_class": "browser",
+      "unicode": "e601",
+      "unicode_decimal": 58881
+    },
+    {
+      "icon_id": "48570050",
+      "name": "imgage",
+      "font_class": "imgage",
+      "unicode": "e604",
+      "unicode_decimal": 58884
+    },
+    {
+      "icon_id": "48570052",
+      "name": "love",
+      "font_class": "love",
+      "unicode": "e605",
+      "unicode_decimal": 58885
+    },
+    {
+      "icon_id": "48570060",
+      "name": "wifi",
+      "font_class": "wifi",
+      "unicode": "e606",
+      "unicode_decimal": 58886
+    },
+    {
+      "icon_id": "48582098",
+      "name": "amount",
+      "font_class": "amount",
+      "unicode": "e607",
+      "unicode_decimal": 58887
+    },
+    {
+      "icon_id": "48582099",
+      "name": "camera",
+      "font_class": "camera",
+      "unicode": "e608",
+      "unicode_decimal": 58888
+    },
+    {
+      "icon_id": "48570058",
+      "name": "prompt",
+      "font_class": "prompt",
+      "unicode": "e602",
+      "unicode_decimal": 58882
+    },
+    {
+      "icon_id": "48611499",
+      "name": "prompt-copy",
+      "font_class": "prompt-copy",
+      "unicode": "e603",
+      "unicode_decimal": 58883
+    }
+  ]
+}

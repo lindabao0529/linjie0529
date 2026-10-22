@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>字符即图形 · Font Awesome 字体图标</title>
+  <!-- 本地 CDN：字体图标方式（CSS + woff2 字体文件） -->
+  <link rel="stylesheet" href="cdn/fontawesome/css/all.min.css">
+  <style>
+    /* 规则：所有类名/ID/变量以 linjie_ 开头 */
+    :root {
+      --linjie_paper: #FAF9F6;      /* 纸白 */
+      --linjie_ink: #201D19;        /* 墨色 */
+      --linjie_ink_soft: #6F6A60;   /* 淡墨 */
+      --linjie_seal: #B4362A;       /* 印泥红：全页唯一强调色 */
+      --linjie_rule: #E4E0D7;       /* 细墨线 */
+      --linjie_wash: #F2EFE8;       /* hover 墨洗 */
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: var(--linjie_paper);
+      color: var(--linjie_ink);
+      line-height: 1.7;
+      padding: 56px 24px 72px;
+    }
+
+    .linjie_page {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    /* ---------- 字头：字符即图形 ---------- */
+    .linjie_hero {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 40px;
+      padding-bottom: 40px;
+      margin-bottom: 48px;
+      border-bottom: 3px double var(--linjie_ink);
+    }
+
+    .linjie_hero_text {
+      animation: linjie_rise 0.7s ease both;
+    }
+
+    .linjie_hero_text h1 {
+      font-family: "Noto Serif SC", "Songti SC", SimSun, serif;
+      font-size: clamp(38px, 6vw, 64px);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      line-height: 1.25;
+    }
+
+    .linjie_lede {
+      max-width: 34em;
+      margin-top: 14px;
+      font-size: 15px;
+      color: var(--linjie_ink_soft);
+    }
+
+    .linjie_back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 26px;
+      padding: 9px 22px;
+      border: 1px solid var(--linjie_ink);
+      color: var(--linjie_ink);
+      text-decoration: none;
+      font-size: 14px;
+      border-radius: 999px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .linjie_back:hover {
+      background: var(--linjie_ink);
+      color: var(--linjie_paper);
+    }
+
+    .linjie_back:focus-visible {
+      outline: 2px solid var(--linjie_seal);
+      outline-offset: 3px;
+    }
+
+    /* 活字样本块：整页最重的一笔 */
+    .linjie_specimen {
+      flex-shrink: 0;
+      width: 220px;
+      border: 1px solid var(--linjie_ink);
+      padding: 26px 20px 16px;
+      text-align: center;
+      animation: linjie_rise 0.7s 0.12s ease both;
+    }
+
+    .linjie_specimen i {
+      font-size: 92px;
+      line-height: 1;
+      color: var(--linjie_seal);
+      display: block;
+    }
+
+    .linjie_specimen figcaption {
+      margin-top: 18px;
+      padding-top: 12px;
+      border-top: 1px solid var(--linjie_rule);
+      font-size: 12px;
+      color: var(--linjie_ink_soft);
+      letter-spacing: 0.06em;
+    }
+
+    @keyframes linjie_rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .linjie_hero_text,
+      .linjie_specimen { animation: none; }
+      .linjie_back { transition: none; }
+    }
+
+    /* ---------- 字盘：细墨线共享边框网格 ---------- */
+    .linjie_case {
+      margin-bottom: 52px;
+    }
+
+    .linjie_case:last-of-type {
+      margin-bottom: 0;
+    }
+
+    .linjie_case_head {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .linjie_case_head h2 {
+      font-family: "Noto Serif SC", "Songti SC", SimSun, serif;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+
+    .linjie_case_head span {
+      font-size: 13px;
+      color: var(--linjie_ink_soft);
+    }
+
+    .linjie_case_head code {
+      font-size: 13px;
+      color: var(--linjie_seal);
+    }
+
+    .linjie_grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+      border-top: 1px solid var(--linjie_rule);
+      border-left: 1px solid var(--linjie_rule);
+    }
+
+    .linjie_cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 22px 8px 16px;
+      border-right: 1px solid var(--linjie_rule);
+      border-bottom: 1px solid var(--linjie_rule);
+      transition: background 0.2s;
+    }
+
+    .linjie_cell i {
+      font-size: 28px;
+      color: var(--linjie_ink);
+      transition: color 0.2s;
+    }
+
+    .linjie_cell figcaption {
+      font-size: 12px;
+      color: var(--linjie_ink_soft);
+      word-break: break-all;
+      text-align: center;
+    }
+
+    .linjie_cell:hover {
+      background: var(--linjie_wash);
+    }
+
+    .linjie_cell:hover i {
+      color: var(--linjie_seal);
+    }
+
+    @media (max-width: 760px) {
+      .linjie_hero {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .linjie_specimen {
+        width: 100%;
+        max-width: 280px;
+      }
+      .linjie_case_head {
+        flex-direction: column;
+        gap: 4px;
+      }
+    }
+
+    /* ---------- 页脚 ---------- */
+    .linjie_footer {
+      margin-top: 56px;
+      padding-top: 16px;
+      border-top: 1px solid var(--linjie_rule);
+      font-size: 12px;
+      color: var(--linjie_ink_soft);
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <div class="linjie_page">
+
+    <header class="linjie_hero">
+      <div class="linjie_hero_text">
+        <h1>字符即图形</h1>
+        <p class="linjie_lede">
+          字体图标的原理是把图标画进字库：@font-face 加载一份 woff2 字体，
+          每个图标对应字库里的一个字符，写个类名就能上屏，颜色字号随文字样式缩放。
+        </p>
+        <a class="linjie_back" href="index.html"><i class="fa-solid fa-house"></i>返回首页</a>
+      </div>
+      <figure class="linjie_specimen">
+        <i class="fa-solid fa-font"></i>
+        <figcaption>fa-font · U+F035</figcaption>
+      </figure>
+    </header>
+
+    <!-- 字盘一：实心 -->
+    <section class="linjie_case">
+      <header class="linjie_case_head">
+        <h2>实心字盘</h2>
+        <span>Solid · 笔画最重的家族，适合按钮、导航等醒目场合 · 用法 <code>&lt;i class="fa-solid fa-house"&gt;</code></span>
+      </header>
+      <div class="linjie_grid">
+        <figure class="linjie_cell"><i class="fa-solid fa-house"></i><figcaption>fa-house</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-solid fa-heart"></i><figcaption>fa-heart</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-solid fa-star"></i><figcaption>fa-star</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-solid fa-camera"></i><figcaption>fa-camera</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-solid fa-bell"></i><figcaption>fa-bell</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-solid fa-user"></i><figcaption>fa-user</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-solid fa-magnifying-glass"></i><figcaption>fa-magnifying-glass</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-solid fa-envelope"></i><figcaption>fa-envelope</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-solid fa-download"></i><figcaption>fa-download</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-solid fa-cloud"></i><figcaption>fa-cloud</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-solid fa-moon"></i><figcaption>fa-moon</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-solid fa-gear"></i><figcaption>fa-gear</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- 字盘二：常规 -->
+    <section class="linjie_case">
+      <header class="linjie_case_head">
+        <h2>常规字盘</h2>
+        <span>Regular · 同一字符的细描版本，适合正文、列表等轻量场合 · 用法 <code>&lt;i class="fa-regular fa-heart"&gt;</code></span>
+      </header>
+      <div class="linjie_grid">
+        <figure class="linjie_cell"><i class="fa-regular fa-heart"></i><figcaption>fa-heart</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-regular fa-star"></i><figcaption>fa-star</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-regular fa-bell"></i><figcaption>fa-bell</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-regular fa-envelope"></i><figcaption>fa-envelope</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-regular fa-user"></i><figcaption>fa-user</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-regular fa-clock"></i><figcaption>fa-clock</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-regular fa-image"></i><figcaption>fa-image</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-regular fa-file"></i><figcaption>fa-file</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- 字盘三：品牌 -->
+    <section class="linjie_case">
+      <header class="linjie_case_head">
+        <h2>品牌字盘</h2>
+        <span>Brands · 各家商标字形，独立于 Free 字库之外 · 用法 <code>&lt;i class="fa-brands fa-github"&gt;</code></span>
+      </header>
+      <div class="linjie_grid">
+        <figure class="linjie_cell"><i class="fa-brands fa-github"></i><figcaption>fa-github</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-brands fa-weixin"></i><figcaption>fa-weixin</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-brands fa-qq"></i><figcaption>fa-qq</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-brands fa-html5"></i><figcaption>fa-html5</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-brands fa-css3-alt"></i><figcaption>fa-css3-alt</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-brands fa-js"></i><figcaption>fa-js</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-brands fa-python"></i><figcaption>fa-python</figcaption></figure>
+        <figure class="linjie_cell"><i class="fa-brands fa-chrome"></i><figcaption>fa-chrome</figcaption></figure>
+      </div>
+    </section>
+
+    <footer class="linjie_footer">高级网页设计课程练习 · 字体图标</footer>
+  </div>
+</body>
+</html>

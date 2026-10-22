@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据类型与运算符</title>
+    <link rel="stylesheet" href="dataTyp004.css">
+</head>
+<body>
+    <div class="container">
+        <h2>数七游戏（1‑100），含7或是7倍数跳过</h2>
+        <div class="seven-game" id="gameBox">
+            <!-- js动态生成格子 -->
+        </div>
+    </div>
+
+    <script> 
+        var a = 10,b = 4;
+        // 控制台输出
+        console.log(a++); 
+        console.log(a-b>0?a:b);
+        console.log(true&&false,true||false,!true); 
+        var str = 'hello word ',num = 10,blean = true,ud,obj={name:'张三',age:20},arr=[1,2,3,4];
+        console.log(typeof str,typeof num,typeof blean,typeof ud,typeof obj,typeof arr);
+        //浮点小数不能用二进制精确存储，JS不能用==或者===来判断两个浮点数是否相等
+        console.log(0.1+0.2==0.3);
+        //字符类型转换，+将数字转换成字符串，-用能用于数值运算
+        console.log('1'+1,1+'1','11'+1-1);
+        //NaN表示不是一个数字,isNaN()函数可以判断是否是一个数字
+        //NaN和任何值都不相等，包括它自己
+        console.log("wangyao"-1);
+        console.log(NaN==NaN);
+        //parseInt()向下取整
+        console.log(parseInt(12.9));
+
+
+        //数7游戏，使用grid网格渲染
+        const gameBox = document.getElementById('gameBox');
+        for(let i=1;i<=100;i++){    
+            const div = document.createElement('div');
+            div.className = 'item';
+            // 判断是7倍数 或者包含数字7
+            if(i%7===0 || i.toString().indexOf('7')!==-1){
+                div.classList.add('skip');
+                div.innerText = '✖';
+            }else{
+                div.innerText = i;
+            }
+            gameBox.appendChild(div);
+        }
+    </script>
+</body>
+</html>

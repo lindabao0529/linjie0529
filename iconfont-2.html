@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>线条即图形 · Lucide SVG 图标</title>
+  <!-- 本地 CDN：SVG 方式（JS 将 data-lucide 占位元素替换为内联 SVG） -->
+  <script src="cdn/lucide/lucide.min.js"></script>
+  <style>
+    /* 规则：所有类名/ID/变量以 linjie_ 开头 */
+    :root {
+      --linjie_sheet: #F8FBFD;      /* 图纸白 */
+      --linjie_blue: #16496F;       /* 制图蓝墨 */
+      --linjie_blue_deep: #0E324D;  /* 深蓝 */
+      --linjie_blue_soft: #52708A;  /* 铅笔灰蓝 */
+      --linjie_mesh: #E2ECF3;       /* 坐标纸格线 */
+      --linjie_rule: #C9DAE7;       /* 边线 */
+      --linjie_wash: #EDF5FA;       /* hover 水洗 */
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      color: var(--linjie_blue);
+      line-height: 1.7;
+      padding: 56px 24px 72px;
+      /* 坐标纸底纹：SVG 制图桌面 */
+      background-color: var(--linjie_sheet);
+      background-image:
+        linear-gradient(var(--linjie_mesh) 1px, transparent 1px),
+        linear-gradient(90deg, var(--linjie_mesh) 1px, transparent 1px);
+      background-size: 26px 26px;
+    }
+
+    .linjie_page {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    /* ---------- 图头：线条即图形 ---------- */
+    .linjie_hero {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 40px;
+      padding: 36px 36px 32px;
+      margin-bottom: 48px;
+      background: #fff;
+      border: 1px solid var(--linjie_rule);
+    }
+
+    .linjie_hero_text {
+      animation: linjie_rise 0.7s ease both;
+    }
+
+    .linjie_hero_text h1 {
+      font-family: "Noto Serif SC", "Songti SC", SimSun, serif;
+      font-size: clamp(38px, 6vw, 64px);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      line-height: 1.25;
+      color: var(--linjie_blue_deep);
+    }
+
+    .linjie_lede {
+      max-width: 34em;
+      margin-top: 14px;
+      font-size: 15px;
+      color: var(--linjie_blue_soft);
+    }
+
+    .linjie_lede code {
+      font-size: 13px;
+      color: var(--linjie_blue_deep);
+    }
+
+    .linjie_back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 26px;
+      padding: 9px 22px;
+      border: 1px solid var(--linjie_blue);
+      color: var(--linjie_blue);
+      text-decoration: none;
+      font-size: 14px;
+      border-radius: 999px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .linjie_back:hover {
+      background: var(--linjie_blue);
+      color: #fff;
+    }
+
+    .linjie_back:focus-visible {
+      outline: 2px solid var(--linjie_blue_deep);
+      outline-offset: 3px;
+    }
+
+    .linjie_back svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* 图版样本块：整页最重的一笔 */
+    .linjie_specimen {
+      flex-shrink: 0;
+      width: 220px;
+      border: 1px solid var(--linjie_blue);
+      padding: 30px 20px 16px;
+      text-align: center;
+      background:
+        linear-gradient(var(--linjie_mesh) 1px, transparent 1px) 0 0 / 100% 22px,
+        #fff;
+      animation: linjie_rise 0.7s 0.12s ease both;
+    }
+
+    .linjie_specimen svg {
+      width: 92px;
+      height: 92px;
+      stroke-width: 1;
+      color: var(--linjie_blue_deep);
+      display: inline-block;
+    }
+
+    .linjie_specimen figcaption {
+      margin-top: 18px;
+      padding-top: 12px;
+      border-top: 1px solid var(--linjie_rule);
+      font-size: 12px;
+      color: var(--linjie_blue_soft);
+      letter-spacing: 0.06em;
+    }
+
+    @keyframes linjie_rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .linjie_hero_text,
+      .linjie_specimen { animation: none; }
+      .linjie_back { transition: none; }
+    }
+
+    /* ---------- 图版：细蓝线共享边框网格 ---------- */
+    .linjie_case {
+      margin-bottom: 48px;
+      background: #fff;
+      border: 1px solid var(--linjie_rule);
+      padding: 26px 26px 30px;
+    }
+
+    .linjie_case:last-of-type {
+      margin-bottom: 0;
+    }
+
+    .linjie_case_head {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .linjie_case_head h2 {
+      font-family: "Noto Serif SC", "Songti SC", SimSun, serif;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--linjie_blue_deep);
+    }
+
+    .linjie_case_head span {
+      font-size: 13px;
+      color: var(--linjie_blue_soft);
+    }
+
+    .linjie_case_head code {
+      font-size: 13px;
+      color: var(--linjie_blue_deep);
+    }
+
+    .linjie_grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+      border-top: 1px solid var(--linjie_rule);
+      border-left: 1px solid var(--linjie_rule);
+    }
+
+    .linjie_cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 22px 8px 16px;
+      border-right: 1px solid var(--linjie_rule);
+      border-bottom: 1px solid var(--linjie_rule);
+      transition: background 0.2s;
+    }
+
+    .linjie_cell svg {
+      width: 28px;
+      height: 28px;
+      stroke-width: 1.75;
+      color: var(--linjie_blue);
+      transition: color 0.2s;
+    }
+
+    .linjie_cell figcaption {
+      font-size: 12px;
+      color: var(--linjie_blue_soft);
+      word-break: break-all;
+      text-align: center;
+    }
+
+    .linjie_cell:hover {
+      background: var(--linjie_wash);
+    }
+
+    .linjie_cell:hover svg {
+      color: var(--linjie_blue_deep);
+    }
+
+    @media (max-width: 760px) {
+      .linjie_hero {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 24px 20px;
+      }
+      .linjie_specimen {
+        width: 100%;
+        max-width: 280px;
+      }
+      .linjie_case {
+        padding: 20px 16px 24px;
+      }
+      .linjie_case_head {
+        flex-direction: column;
+        gap: 4px;
+      }
+    }
+
+    /* ---------- 页脚 ---------- */
+    .linjie_footer {
+      margin-top: 56px;
+      padding-top: 16px;
+      border-top: 1px solid var(--linjie_rule);
+      font-size: 12px;
+      color: var(--linjie_blue_soft);
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <div class="linjie_page">
+
+    <header class="linjie_hero">
+      <div class="linjie_hero_text">
+        <h1>线条即图形</h1>
+        <p class="linjie_lede">
+          SVG 图标的原理是用路径把图形描出来：页面里写一个占位元素
+          <code>&lt;i data-lucide="home"&gt;</code>，脚本加载后把它替换为内联矢量。
+          线条继承文字颜色，粗细、大小都能由样式表精确控制。
+        </p>
+        <a class="linjie_back" href="index.html"><i data-lucide="home"></i>返回首页</a>
+      </div>
+      <figure class="linjie_specimen">
+        <i data-lucide="pencil-ruler"></i>
+        <figcaption>pencil-ruler · 24×24 网格</figcaption>
+      </figure>
+    </header>
+
+    <!-- 图版一：基础图形 -->
+    <section class="linjie_case">
+      <header class="linjie_case_head">
+        <h2>基础图版</h2>
+        <span>最常用的界面图形 · 占位写法 <code>&lt;i data-lucide="home"&gt;</code></span>
+      </header>
+      <div class="linjie_grid">
+        <figure class="linjie_cell"><i data-lucide="home"></i><figcaption>home</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="heart"></i><figcaption>heart</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="star"></i><figcaption>star</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="camera"></i><figcaption>camera</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="bell"></i><figcaption>bell</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="user"></i><figcaption>user</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="search"></i><figcaption>search</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="mail"></i><figcaption>mail</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="download"></i><figcaption>download</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="cloud"></i><figcaption>cloud</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="moon"></i><figcaption>moon</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="settings"></i><figcaption>settings</figcaption></figure>
+      </div>
+    </section>
+
+    <!-- 图版二：常用功能 -->
+    <section class="linjie_case">
+      <header class="linjie_case_head">
+        <h2>功能图版</h2>
+        <span>编辑、时间与分享类图形 · 细描边 <code>stroke-width: 1.75</code> 可随场景调整</span>
+      </header>
+      <div class="linjie_grid">
+        <figure class="linjie_cell"><i data-lucide="calendar"></i><figcaption>calendar</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="clock"></i><figcaption>clock</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="image"></i><figcaption>image</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="file"></i><figcaption>file</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="thumbs-up"></i><figcaption>thumbs-up</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="share-2"></i><figcaption>share-2</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="trash-2"></i><figcaption>trash-2</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="pencil"></i><figcaption>pencil</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="sun"></i><figcaption>sun</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="map-pin"></i><figcaption>map-pin</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="wifi"></i><figcaption>wifi</figcaption></figure>
+        <figure class="linjie_cell"><i data-lucide="play"></i><figcaption>play</figcaption></figure>
+      </div>
+    </section>
+
+    <footer class="linjie_footer">高级网页设计课程练习 · SVG 图标</footer>
+  </div>
+
+  <script>
+    // 规则：所有 JS 变量以 linjie_ 开头
+    var linjie_iconList = document.querySelectorAll('[data-lucide]');
+    lucide.createIcons();
+    console.log('Lucide SVG 图标渲染完成，共转换 ' + linjie_iconList.length + ' 个图标。');
+  </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    padding: 30px;
+    font-family: "Microsoft Yahei", sans-serif;
+    background-color: #f5f7fa;
+}
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+.seven-game {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 6px;
+}
+.item {
+    height: 44px;
+    line-height: 44px;
+    text-align: center;
+    background: #fff;
+    border-radius: 6px;
+    border:1px solid #ddd;
+    font-size:16px;
+}
+.skip {
+    background-color: #ff7875;
+    color:#fff;
+}

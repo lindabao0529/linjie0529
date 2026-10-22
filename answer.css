@@ -1,0 +1,101 @@
+/* 全局重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+ul {
+    list-style: none;
+}
+a {
+    text-decoration: none;
+}
+body {
+    padding: 30px;
+    line-height: 1.6;
+    font-size: 18px;
+}
+h1, h2, h3, h4 {
+    margin: 20px 0 10px;
+}
+p,pre,table {
+    margin-bottom:12px;
+}
+table{
+    border-collapse: collapse;
+}
+th,td{
+    border:1px solid #333;
+    padding:8px 12px;
+}
+
+/* 2.2 卡片box样式 */
+.box {
+    display: flex;
+    gap: 8px; /* flex间隙，题目要求 */
+    flex-wrap: wrap;
+}
+.box li {
+    width: 300px;
+    overflow: hidden;    /* Bug1修复：图片不溢出 */
+    position: relative;  /* Bug3修复：子绝父相 */
+    border:1px solid #ccc;
+}
+.box img {
+    width: 100%;
+    transition: all 0.6s; /* Bug2修复：transition写在默认状态 */
+    display:block;
+}
+.box li:hover img {
+    transform: scale(1.2);
+}
+/* 卡片文字txt，底部滑出效果 */
+.box .txt {
+    position: absolute;
+    left:0;
+    bottom: -60px;
+    width:100%;
+    height:60px;
+    background:rgba(0,0,0,0.6);
+    color:#fff;
+    text-align:center;
+    line-height:60px;
+    transition: all 0.6s;
+}
+.box li:hover .txt {
+    bottom:0;
+}
+/* 奇数卡片 :nth-child(odd) 文字铺满整张卡片 */
+.box li:nth-child(odd):hover .txt {
+    top:0;
+    bottom:0;
+    height:100%;
+}
+
+/* 第三部分图片样式 */
+.answer-img{
+    width:80%;
+}
+
+/* ========== 第四部分：回到顶部按钮【纯CSS，无JS】 ========== */
+.back-top {
+    position: fixed;       /* 固定在视口 */
+    left: 20px;
+    bottom: 20px;          /* 左下角 */
+    z-index: 999;          /* 浮在页面上层 */
+    opacity: 0.5;          /* 初始半透明 */
+    transition: all 0.3s;  /* 动画过渡，移入移出都生效 */
+
+    width: 70px;
+    height: 70px;
+    background-color: #2288ee;
+    color: #fff;
+    text-align: center;
+    line-height: 70px;
+    border-radius: 50%;
+}
+/* hover效果：完全不透明 + 轻微放大 */
+.back-top:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}

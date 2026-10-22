@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>作业答案</title>
+    <link rel="stylesheet" href="answer.css">
+</head>
+<body>
+    <div class="container">
+        <h1>作业答案</h1>
+
+        <h2>第一部分：看代码找错</h2>
+        <p><strong>Bug1：图片放大跑出卡片，盖住旁边卡片</strong></p>
+        <p>错误位置：.box li 样式，缺少 overflow:hidden</p>
+<pre>
+.box li{
+  width: 300px;
+  overflow: hidden;
+}
+</pre>
+        <p><strong>Bug2：文字展开只有移入有动画，鼠标移出无过渡效果</strong></p>
+        <p>错误原因：transition写在hover里面，需要移到普通img选择器</p>
+<pre>
+.box img{
+  width: 100%;
+  transition: all .6s;
+}
+.box li:hover img{
+  transform: scale(1.2);
+}
+</pre>
+        <p><strong>Bug3：卡片布局排版错乱</strong></p>
+        <p>错误位置：.box li，缺少position:relative（子绝父相）</p>
+<pre>
+.box li{
+  width: 300px;
+  overflow: hidden;
+  position: relative;
+}
+</pre>
+
+        <h2>第二部分：补全代码</h2>
+        <h3>2.1 语义标签填空</h3>
+        <ul>
+            <li>页面顶部头部区域 → &lt;header&gt;</li>
+            <li>导航条 → &lt;nav&gt;</li>
+            <li>页面唯一主要内容区 → &lt;main&gt;</li>
+            <li>侧边栏附属内容 → &lt;aside&gt;</li>
+            <li>页面底部版权页脚 → &lt;footer&gt;</li>
+        </ul>
+
+        <h3>2.2 卡片动画补全</h3>
+        <table>
+            <tr>
+                <th>需要实现效果</th>
+                <th>填写关键CSS代码 / 答案</th>
+            </tr>
+            <tr>
+                <td>防止放大图片溢出li容器</td>
+                <td>li添加属性：overflow:hidden</td>
+            </tr>
+            <tr>
+                <td>子绝父相，让文字条定位在卡片底部</td>
+                <td>li添加属性：position:relative</td>
+            </tr>
+            <tr>
+                <td>hover图片从原始大小放大到 scale(1.2)</td>
+                <td>需要写哪两个选择器：.box img 、 .box li:hover img</td>
+            </tr>
+            <tr>
+                <td>文字高度平滑展开，移入移出都有动画。transition写在默认还是hover？为什么？</td>
+                <td>写在默认状态；transition写在默认样式，移入移出都有过渡；写在hover仅移入有动画。</td>
+            </tr>
+            <tr>
+                <td>奇数卡片悬浮，文字铺满整张卡片</td>
+                <td>使用什么伪类选择器：:nth-child(odd)</td>
+            </tr>
+        </table>
+
+        <h4>卡片效果演示（上图下文，hover图片放大+文字展开）</h4>
+        <ul class="box">
+            <li>
+                <img src="img/1.jpg" alt="图片">
+                <div class="txt">卡片1</div>
+            </li>
+            <li>
+                <img src="img/2.jpg" alt="图片">
+                <div class="txt">卡片2</div>
+            </li>
+            <li>
+                <img src="img/3.jpg" alt="图片">
+                <div class="txt">卡片3</div>
+            </li>
+            <li>
+                <img src="img/4.jpg" alt="图片">
+                <div class="txt">卡片4</div>
+            </li>
+            <li>
+                <img src="img/5.jpg" alt="图片">
+                <div class="txt">卡片5</div>
+            </li>
+            <li>
+                <img src="img/6.jpg" alt="图片">
+                <div class="txt">卡片6</div>
+            </li>
+        </ul>
+
+        <h3>2.3 flex两栏布局填空</h3>
+        <ul>
+            <li>父容器开启flex：display: <strong>flex</strong></li>
+            <li>设置两栏间隙8px的属性：<strong>gap:8px</strong>（禁止margin）</li>
+        </ul>
+
+        <h2>第三部分：手写原理简答（25分）</h2>
+        <img class="answer-img" src="./img/zy.jpg" alt="第三部分手写简答">
+
+        <h2>第四部分：扩展挑战（选做，15分加分）</h2>
+        <ul>
+            <li>position:fixed固定在视口左下角</li>
+            <li>初始opacity:0.5半透明</li>
+            <li>hover完全不透明，同时轻微放大</li>
+            <li>设置z-index保证按钮浮于页面内容之上</li>
+        </ul>
+    </div>
+
+    <a href="#" class="back-top">回到顶部</a>
+</body>
+</html>
