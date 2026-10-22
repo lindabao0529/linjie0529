@@ -12,6 +12,16 @@ description: Commit the whole project with git and push it to the Gitee remote h
 - 终端是 Windows PowerShell 5：多条命令用 `;` 连接，**不要用 `&&`**。
 - 所有 git 命令在仓库根目录执行，git 命令前不要拼接 `cd`。
 
+## 认证（Gitee 私人令牌）
+
+- 完整令牌只存放在 `.trae/skills/commit-project/token.txt`（已被 `.gitignore` 排除，不进入版本库）。
+- **禁止**把令牌写入任何被 git 跟踪的文件（SKILL.md、linjie_prompt.md、网页源码等）。
+- 推送时若要求认证，或远程未带令牌，用令牌构造带凭证的远程地址：
+  1. 读取令牌：`$linjie_token = (Get-Content .trae/skills/commit-project/token.txt -Raw).Trim()`
+  2. 设置远程：`git remote set-url origin ("https://lin-jie0529:" + $linjie_token + "@gitee.com/lin-jie0529/linjie529.git")`
+  3. 之后正常 `git push`。`.git/config` 属本地文件，不会被提交。
+- 若 `git push` 无需认证（凭证管理器已缓存），直接推送即可，不必重设远程。
+
 ## 步骤
 
 1. **确认仓库状态**：运行 `git rev-parse --is-inside-work-tree`。
