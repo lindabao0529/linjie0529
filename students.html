@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>班级成绩管理 · 等级一基础 L1</title>
+<style>
+  :root {
+    --linjie_primary: #2f6fed;
+    --linjie_primary-soft: #eaf1fe;
+    --linjie_ink: #1c2333;
+    --linjie_ink-2: #5b6478;
+    --linjie_line: #e3e7f0;
+    --linjie_paper: #f6f7fb;
+    --linjie_card: #ffffff;
+    --linjie_danger: #d64550;
+    --linjie_danger-soft: #fdeeee;
+    --linjie_pass: #1f9d63;
+    --linjie_radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    background: var(--linjie_paper);
+    color: var(--linjie_ink);
+    line-height: 1.6;
+    padding-bottom: 60px;
+  }
+  .linjie_wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+  /* ===== 头部 ===== */
+  .linjie_header {
+    background: linear-gradient(135deg, #24408f 0%, var(--linjie_primary) 70%, #5a8cf5 100%);
+    color: #fff;
+    padding: 34px 0 76px;
+  }
+  .linjie_back {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: rgba(255,255,255,.85); text-decoration: none; font-size: 14px;
+    padding: 6px 12px; border: 1px solid rgba(255,255,255,.35); border-radius: 999px;
+    transition: background .2s;
+  }
+  .linjie_back:hover { background: rgba(255,255,255,.12); }
+  .linjie_title-row { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
+  .linjie_h1 { font-size: 30px; letter-spacing: 1px; }
+  .linjie_lv {
+    font-size: 12px; font-weight: 600; letter-spacing: 1px;
+    background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.4);
+    padding: 3px 10px; border-radius: 999px;
+  }
+  .linjie_sub { margin-top: 6px; color: rgba(255,255,255,.82); font-size: 14px; }
+
+  /* ===== 统计卡 ===== */
+  .linjie_stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    margin-top: -46px;
+  }
+  .linjie_stat {
+    background: var(--linjie_card); border: 1px solid var(--linjie_line);
+    border-radius: var(--linjie_radius); padding: 18px 20px;
+    box-shadow: 0 8px 24px rgba(36,64,143,.08);
+  }
+  .linjie_stat-label { font-size: 13px; color: var(--linjie_ink-2); }
+  .linjie_stat-value { font-size: 32px; font-weight: 700; color: var(--linjie_primary); margin-top: 2px; }
+  .linjie_stat-value small { font-size: 14px; font-weight: 500; color: var(--linjie_ink-2); margin-left: 2px; }
+  .linjie_stat:nth-child(4) .linjie_stat-value { color: var(--linjie_pass); }
+
+  /* ===== 工具栏：搜索 + 排序 ===== */
+  .linjie_toolbar {
+    display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between;
+    margin: 26px 0 16px;
+  }
+  .linjie_search { position: relative; flex: 1 1 260px; max-width: 360px; }
+  .linjie_search-input {
+    width: 100%; padding: 10px 14px 10px 38px;
+    border: 1px solid var(--linjie_line); border-radius: 10px;
+    font-size: 14px; background: var(--linjie_card); color: var(--linjie_ink);
+    outline: none; transition: border-color .2s, box-shadow .2s;
+  }
+  .linjie_search-input:focus { border-color: var(--linjie_primary); box-shadow: 0 0 0 3px var(--linjie_primary-soft); }
+  .linjie_search-icon {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--linjie_ink-2); font-size: 15px; pointer-events: none;
+  }
+  .linjie_sort-group { display: flex; gap: 0; border: 1px solid var(--linjie_line); border-radius: 10px; overflow: hidden; background: var(--linjie_card); }
+  .linjie_sort-btn {
+    border: none; background: transparent; padding: 10px 18px;
+    font-size: 14px; color: var(--linjie_ink-2); cursor: pointer; transition: all .2s;
+  }
+  .linjie_sort-btn + .linjie_sort-btn { border-left: 1px solid var(--linjie_line); }
+  .linjie_sort-btn.linjie_active { background: var(--linjie_primary); color: #fff; font-weight: 600; }
+  .linjie_count { font-size: 13px; color: var(--linjie_ink-2); margin-bottom: 14px; }
+  .linjie_count strong { color: var(--linjie_primary); }
+
+  /* ===== 学生卡片 ===== */
+  .linjie_cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+  .linjie_card {
+    background: var(--linjie_card); border: 1px solid var(--linjie_line);
+    border-radius: var(--linjie_radius); padding: 16px;
+    cursor: pointer; transition: transform .18s, box-shadow .18s, border-color .18s;
+  }
+  .linjie_card:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(36,64,143,.10); }
+  .linjie_card.linjie_selected { border-color: var(--linjie_primary); box-shadow: 0 0 0 3px var(--linjie_primary-soft); }
+  .linjie_card-head { display: flex; align-items: center; gap: 12px; }
+  .linjie_avatar {
+    width: 44px; height: 44px; border-radius: 50%; flex: none;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 17px; font-weight: 600;
+  }
+  .linjie_name { font-size: 16px; font-weight: 600; }
+  .linjie_sid { font-size: 12px; color: var(--linjie_ink-2); }
+  .linjie_rank-chip {
+    margin-left: auto; font-size: 12px; font-weight: 700; color: var(--linjie_primary);
+    background: var(--linjie_primary-soft); padding: 3px 9px; border-radius: 999px; flex: none;
+  }
+  .linjie_rank-chip.linjie_top3 { background: #fff4e3; color: #c47b12; }
+  .linjie_scores { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 12px; }
+  .linjie_score { text-align: center; background: var(--linjie_paper); border-radius: 8px; padding: 6px 2px; }
+  .linjie_score-sub { font-size: 11px; color: var(--linjie_ink-2); }
+  .linjie_score-num { font-size: 15px; font-weight: 600; }
+  .linjie_score.linjie_fail { background: var(--linjie_danger-soft); }
+  .linjie_score.linjie_fail .linjie_score-num { color: var(--linjie_danger); }
+  .linjie_card-foot {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--linjie_line);
+  }
+  .linjie_total-label { font-size: 12px; color: var(--linjie_ink-2); }
+  .linjie_total-num { font-size: 20px; font-weight: 700; color: var(--linjie_ink); }
+  .linjie_empty { text-align: center; color: var(--linjie_ink-2); padding: 40px 0; font-size: 14px; display: none; }
+
+  /* ===== 不及格预警 ===== */
+  .linjie_warn-toggle {
+    margin-top: 30px; width: 100%;
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--linjie_danger-soft); color: var(--linjie_danger);
+    border: 1px solid #f2c6c9; border-radius: var(--linjie_radius);
+    padding: 14px 18px; font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: filter .2s;
+  }
+  .linjie_warn-toggle:hover { filter: brightness(.98); }
+  .linjie_warn-arrow { transition: transform .25s; font-size: 13px; }
+  .linjie_warn-toggle.linjie_open .linjie_warn-arrow { transform: rotate(180deg); }
+  .linjie_warn-panel { display: none; margin-top: 12px; }
+  .linjie_warn-panel.linjie_show { display: block; }
+  .linjie_warn-list { list-style: none; display: grid; gap: 10px; }
+  .linjie_warn-item {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    background: var(--linjie_card); border: 1px solid #f2c6c9;
+    border-left: 4px solid var(--linjie_danger);
+    border-radius: 10px; padding: 10px 14px; font-size: 14px;
+  }
+  .linjie_warn-name { font-weight: 600; }
+  .linjie_warn-sid { color: var(--linjie_ink-2); font-size: 12px; }
+  .linjie_warn-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .linjie_warn-tag { background: var(--linjie_danger-soft); color: var(--linjie_danger); font-size: 12px; padding: 2px 8px; border-radius: 999px; }
+  .linjie_warn-num { margin-left: auto; font-size: 12px; color: var(--linjie_danger); font-weight: 600; }
+
+  .linjie_footer-note { margin-top: 26px; text-align: center; font-size: 12px; color: var(--linjie_ink-2); }
+
+  button:focus-visible, input:focus-visible, a:focus-visible {
+    outline: 2px solid var(--linjie_primary); outline-offset: 2px;
+  }
+  @media (max-width: 760px) {
+    .linjie_stats { grid-template-columns: repeat(2, 1fr); }
+    .linjie_h1 { font-size: 24px; }
+    .linjie_toolbar { flex-direction: column; align-items: stretch; }
+    .linjie_search { max-width: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="linjie_header">
+  <div class="linjie_wrap">
+    <a class="linjie_back" href="index.html">← 返回首页</a>
+    <div class="linjie_title-row">
+      <h1 class="linjie_h1">班级成绩管理</h1>
+      <span class="linjie_lv">等级一 · 基础 L1</span>
+    </div>
+    <p class="linjie_sub">核心 DOM 查找 + 基础数组方法：统计 · 渲染 · 预警 · 搜索 · 排序</p>
+  </div>
+</header>
+
+<main class="linjie_wrap">
+
+  <!-- 功能1：班级概览统计（4 张统计卡） -->
+  <section class="linjie_stats" id="linjie_stats" aria-label="班级概览统计"></section>
+
+  <!-- 功能4 + 功能5：搜索与排序 -->
+  <div class="linjie_toolbar">
+    <div class="linjie_search">
+      <span class="linjie_search-icon" aria-hidden="true">🔍</span>
+      <input type="search" id="linjie_search-input" class="linjie_search-input"
+             placeholder="搜索姓名或学号…" aria-label="按姓名或学号搜索">
+    </div>
+    <div class="linjie_sort-group" role="group" aria-label="排序方式">
+      <button type="button" class="linjie_sort-btn linjie_active" data-linjie-sort="total">总分 ↓</button>
+      <button type="button" class="linjie_sort-btn" data-linjie-sort="id">学号 ↑</button>
+    </div>
+  </div>
+  <p class="linjie_count" id="linjie_count"></p>
+
+  <!-- 功能2：学生卡片列表 -->
+  <section class="linjie_cards" id="linjie_cards" aria-label="学生卡片列表"></section>
+  <p class="linjie_empty" id="linjie_empty">没有匹配的学生，换个关键词试试～</p>
+
+  <!-- 功能3：不及格预警 -->
+  <button type="button" class="linjie_warn-toggle" id="linjie_warn-toggle" aria-expanded="false">
+    <span id="linjie_warn-title">不及格预警</span>
+    <span class="linjie_warn-arrow" aria-hidden="true">▼</span>
+  </button>
+  <div class="linjie_warn-panel" id="linjie_warn-panel">
+    <ul class="linjie_warn-list" id="linjie_warn-list"></ul>
+  </div>
+
+  <p class="linjie_footer-note">及格线：单科 60 分 ｜ 数据为教学演示用模拟数据</p>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ================= 数据 ================= */
+  var linjie_subjects = ['语文', '数学', '英语', '物理', '化学'];
+  var linjie_students = [
+    { id: '2025001', name: '林晓萌', scores: [92, 95, 88, 90, 93] },
+    { id: '2025002', name: '陈子昂', scores: [55, 78, 64, 82, 71] },
+    { id: '2025003', name: '王思远', scores: [88, 91, 85, 79, 92] },
+    { id: '2025004', name: '赵雨桐', scores: [76, 48, 59, 66, 80] },
+    { id: '2025005', name: '李昊然', scores: [83, 87, 90, 94, 89] },
+    { id: '2025006', name: '周芷若', scores: [95, 89, 93, 91, 96] },
+    { id: '2025007', name: '吴宇轩', scores: [67, 72, 58, 75, 69] },
+    { id: '2025008', name: '郑安琪', scores: [90, 85, 88, 87, 91] },
+    { id: '2025009', name: '孙立诚', scores: [42, 55, 38, 61, 49] },
+    { id: '2025010', name: '何静姝', scores: [79, 84, 81, 77, 83] },
+    { id: '2025011', name: '高铭泽', scores: [58, 62, 71, 45, 66] },
+    { id: '2025012', name: '罗诗涵', scores: [86, 90, 79, 88, 84] }
+  ];
+  var linjie_PASS_LINE = 60;
+
+  /* 视图状态：关键词 + 排序方式 */
+  var linjie_state = { keyword: '', sortBy: 'total' };
+
+  /* ================= 纯函数（有参数有返回值） ================= */
+
+  /* 计算单个学生总分：reduce 累加 */
+  function linjie_calcTotal(stu) {
+    return stu.scores.reduce(function (sum, s) { return sum + s; }, 0);
+  }
+
+  /* 统计不及格科目：先 map 携带原始索引，再 filter —— 避免过滤后索引错位 */
+  function linjie_getFails(stu) {
+    return stu.scores
+      .map(function (s, i) { return { sub: linjie_subjects[i], score: s }; })
+      .filter(function (item) { return item.score < linjie_PASS_LINE; })
+      .map(function (item) { return item.sub + ' ' + item.score; });
+  }
+
+  /* 生成排名表：sort + reduce 建映射 { 学号: 名次 } */
+  function linjie_getRankMap() {
+    var linjie_sorted = linjie_students.slice().sort(function (a, b) {
+      return linjie_calcTotal(b) - linjie_calcTotal(a);
+    });
+    return linjie_sorted.reduce(function (map, stu, idx) {
+      map[stu.id] = idx + 1;
+      return map;
+    }, {});
+  }
+
+  /* 防抖：事件停止触发 wait 毫秒后才执行 fn */
+  function linjie_debounce(fn, wait) {
+    var linjie_timer = null;
+    return function () {
+      var args = arguments, ctx = this;
+      clearTimeout(linjie_timer);
+      linjie_timer = setTimeout(function () { fn.apply(ctx, args); }, wait);
+    };
+  }
+
+  /* 由姓名生成稳定的头像底色 */
+  function linjie_avatarColor(name) {
+    var linjie_code = 0;
+    for (var i = 0; i < name.length; i++) { linjie_code += name.charCodeAt(i); }
+    return 'hsl(' + (linjie_code * 37 % 360) + ', 62%, 52%)';
+  }
+
+  /* ================= 渲染函数 ================= */
+
+  /* 功能1：渲染 4 张统计卡（innerHTML 一次性写入） */
+  function linjie_renderStats() {
+    var linjie_totalSum = linjie_students.reduce(function (sum, stu) {
+      return sum + linjie_calcTotal(stu);
+    }, 0);
+    var linjie_allPass = linjie_students.filter(function (stu) {
+      return linjie_getFails(stu).length === 0;
+    }).length;
+    var linjie_passRate = Math.round(linjie_allPass / linjie_students.length * 1000) / 10;
+
+    document.getElementById('linjie_stats').innerHTML = [
+      { label: '班级人数', html: linjie_students.length + '<small>人</small>' },
+      { label: '班级总分', html: linjie_totalSum + '<small>分</small>' },
+      { label: '平均分', html: (linjie_totalSum / linjie_students.length).toFixed(1) + '<small>分/人</small>' },
+      { label: '及格率', html: linjie_passRate + '<small>%</small>' }
+    ].map(function (item) {
+      return '<div class="linjie_stat"><p class="linjie_stat-label">' + item.label +
+             '</p><p class="linjie_stat-value">' + item.html + '</p></div>';
+    }).join('');
+  }
+
+  /* 功能2：渲染学生卡片（map 生成 HTML；不及格科目标红） */
+  function linjie_renderCards(list, rankMap) {
+    var linjie_box = document.getElementById('linjie_cards');
+    linjie_box.innerHTML = list.map(function (stu) {
+      var linjie_rank = rankMap[stu.id];
+      var linjie_cells = linjie_subjects.map(function (sub, i) {
+        var linjie_fail = stu.scores[i] < linjie_PASS_LINE ? ' linjie_fail' : '';
+        return '<div class="linjie_score' + linjie_fail + '">' +
+               '<p class="linjie_score-sub">' + sub + '</p>' +
+               '<p class="linjie_score-num">' + stu.scores[i] + '</p></div>';
+      }).join('');
+      return '<article class="linjie_card" data-linjie-id="' + stu.id + '" tabindex="0">' +
+             '<div class="linjie_card-head">' +
+               '<span class="linjie_avatar" style="background:' + linjie_avatarColor(stu.name) + '">' +
+                 stu.name.charAt(0) + '</span>' +
+               '<div><p class="linjie_name">' + stu.name + '</p>' +
+                 '<p class="linjie_sid">学号 ' + stu.id + '</p></div>' +
+               '<span class="linjie_rank-chip' + (linjie_rank <= 3 ? ' linjie_top3' : '') + '">第 ' + linjie_rank + ' 名</span>' +
+             '</div>' +
+             '<div class="linjie_scores">' + linjie_cells + '</div>' +
+             '<div class="linjie_card-foot"><span class="linjie_total-label">总分</span>' +
+               '<span class="linjie_total-num">' + linjie_calcTotal(stu) + '</span></div>' +
+             '</article>';
+    }).join('');
+
+    /* 搜索为空时的占位提示 */
+    document.getElementById('linjie_empty').style.display = list.length ? 'none' : 'block';
+  }
+
+  /* 功能3：渲染不及格预警列表（createElement + appendChild 构建节点） */
+  function linjie_renderWarnings() {
+    var linjie_list = linjie_students
+      .map(function (stu) { return { stu: stu, fails: linjie_getFails(stu) }; })
+      .filter(function (item) { return item.fails.length > 0; })
+      .sort(function (a, b) {
+        return b.fails.length - a.fails.length || linjie_calcTotal(a.stu) - linjie_calcTotal(b.stu);
+      });
+
+    document.getElementById('linjie_warn-title').textContent =
+      '不及格预警（' + linjie_list.length + ' 人）';
+
+    var linjie_ul = document.getElementById('linjie_warn-list');
+    linjie_ul.innerHTML = '';
+    linjie_list.forEach(function (item) {
+      var linjie_li = document.createElement('li');
+      linjie_li.className = 'linjie_warn-item';
+      linjie_li.setAttribute('data-linjie-warn-id', item.stu.id);
+
+      var linjie_nameEl = document.createElement('span');
+      linjie_nameEl.className = 'linjie_warn-name';
+      linjie_nameEl.textContent = item.stu.name;
+
+      var linjie_idEl = document.createElement('span');
+      linjie_idEl.className = 'linjie_warn-sid';
+      linjie_idEl.textContent = '学号 ' + item.stu.id;
+
+      var linjie_tags = document.createElement('span');
+      linjie_tags.className = 'linjie_warn-tags';
+      item.fails.forEach(function (f) {
+        var linjie_tag = document.createElement('span');
+        linjie_tag.className = 'linjie_warn-tag';
+        linjie_tag.textContent = f;
+        linjie_tags.appendChild(linjie_tag);
+      });
+
+      var linjie_num = document.createElement('span');
+      linjie_num.className = 'linjie_warn-num';
+      linjie_num.textContent = item.fails.length + ' 科不及格';
+
+      linjie_li.appendChild(linjie_nameEl);
+      linjie_li.appendChild(linjie_idEl);
+      linjie_li.appendChild(linjie_tags);
+      linjie_li.appendChild(linjie_num);
+      linjie_ul.appendChild(linjie_li);
+    });
+  }
+
+  /* 视图应用：搜索过滤 → 排序 → 渲染（indexOf 匹配姓名/学号） */
+  function linjie_applyView() {
+    var linjie_kw = linjie_state.keyword;
+    var linjie_rankMap = linjie_getRankMap();
+    var linjie_list = linjie_students.filter(function (stu) {
+      if (!linjie_kw) { return true; }
+      return stu.name.indexOf(linjie_kw) !== -1 || stu.id.indexOf(linjie_kw) !== -1;
+    });
+    if (linjie_state.sortBy === 'total') {
+      linjie_list = linjie_list.slice().sort(function (a, b) {
+        return linjie_calcTotal(b) - linjie_calcTotal(a);
+      });
+    } else {
+      linjie_list = linjie_list.slice().sort(function (a, b) {
+        return a.id < b.id ? -1 : 1;
+      });
+    }
+    linjie_renderCards(linjie_list, linjie_rankMap);
+    document.getElementById('linjie_count').innerHTML =
+      '共 <strong>' + linjie_list.length + '</strong> 名学生';
+  }
+
+  /* ================= 事件处理 ================= */
+
+  /* 功能4：搜索输入 → 防抖 300ms 后过滤 */
+  document.getElementById('linjie_search-input').addEventListener('input', linjie_debounce(function (e) {
+    linjie_state.keyword = e.target.value.trim();
+    linjie_applyView();
+  }, 300));
+
+  /* 功能5：排序切换（querySelectorAll + classList） */
+  document.querySelectorAll('.linjie_sort-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.linjie_sort-btn').forEach(function (b) {
+        b.classList.remove('linjie_active');
+      });
+      btn.classList.add('linjie_active');
+      linjie_state.sortBy = btn.getAttribute('data-linjie-sort');
+      linjie_applyView();
+    });
+  });
+
+  /* 功能2 附加交互：事件委托 —— 点击卡片选中/取消（closest 找卡片） */
+  document.getElementById('linjie_cards').addEventListener('click', function (e) {
+    var linjie_card = e.target.closest('[data-linjie-id]');
+    if (!linjie_card) { return; }
+    linjie_card.classList.toggle('linjie_selected');
+  });
+
+  /* 功能3：预警面板展开/收起（querySelector） */
+  document.getElementById('linjie_warn-toggle').addEventListener('click', function () {
+    var linjie_panel = document.querySelector('.linjie_warn-panel');
+    var linjie_open = linjie_panel.classList.toggle('linjie_show');
+    this.classList.toggle('linjie_open', linjie_open);
+    this.setAttribute('aria-expanded', linjie_open ? 'true' : 'false');
+  });
+
+  /* ================= 初始化 ================= */
+  linjie_renderStats();
+  linjie_renderWarnings();
+  linjie_applyView();
+})();
+</script>
+</body>
+</html>

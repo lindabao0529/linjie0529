@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学生成绩分析面板 · 目标效果</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft Yahei",sans-serif}
+body{background:#f4f7fa;padding:20px}
+/* 统计行 */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px}
+.stat-card{background:#fff;padding:16px;border-radius:12px;box-shadow:0 2px 10px #00000010}
+.stat-card .label{color:#666;font-size:14px}
+.stat-card .val{font-size:26px;font-weight:bold;margin-top:4px}
+/* 各科均分 */
+.subject-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+.sub-card{background:#fff;padding:12px;border-radius:10px;text-align:center}
+.sub-card .s-name{color:#666;font-size:14px}
+.sub-card .s-val{font-size:22px;font-weight:bold;color:#2563eb}
+/* 控制栏 */
+.ctrl-bar{background:#fff;padding:14px;border-radius:10px;margin-bottom:16px;display:flex;gap:10px;align-items:center}
+.ctrl-bar button{border:none;padding:7px 14px;border-radius:6px;background:#4080ff;color:#fff;cursor:pointer}
+/* 预警榜单区域 */
+.warn-wrap{background:#fff;padding:18px;border-radius:12px;margin-bottom:20px}
+.warn-tip{color:#d92d20;margin-bottom:12px}
+.warn-wrap h4{margin:10px 0 6px;color:#333}
+.top3-list,.king-list,.fail-list{line-height:1.7;font-size:14px}
+.fail-list{color:#d92d20}
+/* 学生卡片网格 */
+.stu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+.stu-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px #00000012}
+.stu-head{padding:14px;text-align:center;border-bottom:1px solid #eee;position:relative}
+.avatar{width:50px;height:50px;border-radius:50%;background:#cce0ff;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 6px;color:#2563eb}
+.rank-tag{position:absolute;top:12px;right:12px;background:#eef4ff;color:#2563eb;font-size:12px;padding:2px 8px;border-radius:12px}
+.stu-name{font-weight:bold;font-size:16px}
+.stu-id-sex{font-size:13px;color:#666;margin:4px 0}
+.score-line{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:10px 12px;text-align:center;font-size:14px}
+.score-item .k{color:#888;font-size:12px}
+.score-item .v{font-weight:500}
+.score-item .v.fail{color:red}
+.total-line{padding:0 12px 10px;display:flex;justify-content:space-between;font-size:14px;font-weight:bold}
+.stu-detail{padding:12px;border-top:1px solid #eee;font-size:13px;line-height:1.8;color:#444}
+</style>
+</head>
+<body>
+<!-- 班级概览统计 -->
+<div class="stat-row">
+  <div class="stat-card">
+    <div class="label">班级人数（人）</div>
+    <div class="val" id="totalNum">0</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">班级总分</div>
+    <div class="val" id="classTotal">0</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">班级平均分</div>
+    <div class="val" id="classAvg">0</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">及格率（无不及格科目）</div>
+    <div class="val" id="passRate">0%</div>
+  </div>
+</div>
+
+<!-- 各科平均分 -->
+<div class="subject-row" id="subRow">
+  <div class="sub-card"><div class="s-name">语文</div><div class="s-val" id="ywAvg">0</div></div>
+  <div class="sub-card"><div class="s-name">数学</div><div class="s-val" id="sxAvg">0</div></div>
+  <div class="sub-card"><div class="s-name">英语</div><div class="s-val" id="yyAvg">0</div></div>
+  <div class="sub-card"><div class="s-name">网页设计</div><div class="s-val" id="wyAvg">0</div></div>
+  <div class="sub-card"><div class="s-name">数据库</div><div class="s-val" id="skAvg">0</div></div>
+</div>
+
+<!-- 排序控制 -->
+<div class="ctrl-bar">
+  <button id="sortBtn">按总分↓</button>
+</div>
+
+<!-- 预警、Top3、各科状元区域 -->
+<div class="warn-wrap">
+  <div class="warn-tip">⚠ 班级中存在不及格科目，请关注预警名单中的学生。</div>
+  <h4>优秀学生 Top3（平均≥85）</h4>
+  <div class="top3-list" id="top3Box"></div>
+  <h4>各科状元</h4>
+  <div class="king-list" id="kingBox"></div>
+  <h4>不及格预警</h4>
+  <div class="fail-list" id="failBox"></div>
+</div>
+
+<!-- 学生卡片区域 -->
+<div class="stu-grid" id="stuBox"></div>
+
+<script>
+const rawData = [
+  { id:"2024008",name:"周诗涵",sex:"女",scores:[100,95,98,97,99] },
+  { id:"2024004",name:"陈雨桐",sex:"女",scores:[95,98,96,94,92] },
+  { id:"2024018",name:"许若曦",sex:"女",scores:[92,96,94,98,95] },
+  { id:"2024001",name:"张明轩",sex:"男",scores:[88,95,82,96,90] },
+  { id:"2024015",name:"罗子睿",sex:"男",scores:[95,88,90,92,86] },
+  { id:"2024006",name:"赵欣怡",sex:"女",scores:[86,90,88,95,91] },
+  { id:"2024017",name:"唐梓涵",sex:"男",scores:[85,90,88,95,92] },
+  { id:"2024012",name:"林晓彤",sex:"女",scores:[90,85,92,88,94] },
+  { id:"2024002",name:"李思琪",sex:"女",scores:[92,78,90,88,85] },
+  { id:"2024010",name:"郑雅文",sex:"女",scores:[78,92,85,90,88] },
+  { id:"2024013",name:"高志远",sex:"男",scores:[88,92,80,85,82] },
+  { id:"2024003",name:"王浩然",sex:"男",scores:[75,88,79,92,86] },
+  { id:"2024009",name:"吴俊杰",sex:"男",scores:[82,86,75,88,80] },
+  { id:"2024014",name:"何雨萱",sex:"女",scores:[76,80,85,78,72] },
+  { id:"2024016",name:"宋佳怡",sex:"女",scores:[68,72,75,70,65] },
+  { id:"2024005",name:"刘子涵",sex:"男",scores:[58,65,72,80,68] },
+  { id:"2024011",name:"黄宇轩",sex:"男",scores:[65,70,58,72,68] },
+  { id:"2024007",name:"孙博文",sex:"男",scores:[70,55,68,75,60] },
+];
+const subName = ["语文","数学","英语","网页设计","数据库"];
+const subShort = ["语","数","英","页","库"];
+let sortMode = "total"; // total / id
+
+// 【纯函数】计算单个学生信息
+function calcStu(item){
+  const total = item.scores.reduce((s,v)=>s+v,0);
+  const avg = total / 5;
+  const failSubIndex = item.scores.map((v,i)=>(v<60?i:-1)).filter(x=>x!==-1);
+  const failSubName = failSubIndex.map(i=>subName[i]);
+  return {...item,total,avg,failSubIndex,failSubName,isPass:failSubIndex.length===0}
+}
+// 班级统计
+function calcClassInfo(list){
+  const arr = list.map(calcStu);
+  const count = arr.length;
+  const allTotal = arr.reduce((s,stu)=>s+stu.total,0);
+  const classAvg = allTotal/(count*5);
+  const passStu = arr.filter(x=>x.isPass);
+  const passRate = (passStu.length/count*100).toFixed(0);
+  // 各科均分
+  const subAvg = [0,0,0,0,0];
+  subAvg.forEach((_,idx)=>{
+    subAvg[idx] = arr.reduce((s,stu)=>s+stu.scores[idx],0)/count
+  })
+  return {count,allTotal,classAvg,passRate,subAvg}
+}
+// 获取Top3（均分>=85）
+function getTop3(list){
+  return list.map(calcStu).filter(x=>x.avg>=85).sort((a,b)=>b.avg-a.avg).slice(0,3)
+}
+// 获取各科状元
+function getKing(list){
+  const arr = list.map(calcStu);
+  const kingRes = [];
+  for(let i=0;i<5;i++){
+    const max = Math.max(...arr.map(x=>x.scores[i]));
+    const winner = arr.find(x=>x.scores[i]===max);
+    kingRes.push({sub:subName[i],stu:winner,score:max})
+  }
+  return kingRes;
+}
+// 获取不及格预警
+function getFailList(list){
+  return list.map(calcStu).filter(x=>!x.isPass).sort((a,b)=>b.failSubName.length - a.failSubName.length)
+}
+// 排序
+function sortStu(list,mode){
+  const arr = list.map(calcStu);
+  if(mode === 'total') return arr.sort((a,b)=>b.total - a.total);
+  else return arr.sort((a,b)=>a.id.localeCompare(b.id));
+}
+
+// 渲染统计
+function renderStat(list){
+  const info = calcClassInfo(list);
+  document.getElementById('totalNum').textContent = info.count;
+  document.getElementById('classTotal').textContent = info.allTotal;
+  document.getElementById('classAvg').textContent = info.classAvg.toFixed(1);
+  document.getElementById('passRate').textContent = info.passRate + '%';
+  document.getElementById('ywAvg').textContent = info.subAvg[0].toFixed(1);
+  document.getElementById('sxAvg').textContent = info.subAvg[1].toFixed(1);
+  document.getElementById('yyAvg').textContent = info.subAvg[2].toFixed(1);
+  document.getElementById('wyAvg').textContent = info.subAvg[3].toFixed(1);
+  document.getElementById('skAvg').textContent = info.subAvg[4].toFixed(1);
+}
+// 渲染Top3
+function renderTop3(list){
+  const box = document.getElementById('top3Box');
+  const top3 = getTop3(list);
+  box.innerHTML = top3.map((item,idx)=>`${idx+1} ${item.name}（${item.id}） ${item.avg}`).join('<br>')
+}
+// 渲染各科状元
+function renderKing(list){
+  const box = document.getElementById('kingBox');
+  const king = getKing(list);
+  box.innerHTML = king.map(k=>`${k.sub} ${k.stu.name} ${k.score}`).join('<br>')
+}
+// 渲染不及格预警
+function renderFail(list){
+  const box = document.getElementById('failBox');
+  const fail = getFailList(list);
+  box.innerHTML = fail.map(item=>`${item.name}（${item.failSubName.join('、')}）${item.total}分`).join('<br>')
+}
+// 渲染学生卡片
+function renderStu(list){
+  const box = document.getElementById('stuBox');
+  box.innerHTML = '';
+  const sorted = sortStu(list,sortMode);
+  sorted.forEach((stu,idx)=>{
+    const scoreHtml = stu.scores.map((v,i)=>`
+      <div class="score-item">
+        <div class="k">${subShort[i]}</div>
+        <div class="v ${v<60?'fail':''}">${v}</div>
+      </div>
+    `).join('');
+    let statusText = stu.isPass ? '全科及格 ✓' : `不及格科目：${stu.failSubName.join('、')}`;
+    const card = document.createElement('div');
+    card.className = 'stu-card';
+    card.innerHTML = `
+      <div class="stu-head">
+        <div class="rank-tag">第${idx+1}名</div>
+        <div class="avatar">${stu.name[0]}</div>
+        <div class="stu-name">${stu.name}</div>
+        <div class="stu-id-sex">${stu.id} · ${stu.sex}</div>
+      </div>
+      <div class="score-line">${scoreHtml}</div>
+      <div class="total-line">
+        <span>总分 ${stu.total}</span>
+        <span>均分 ${stu.avg.toFixed(1)}</span>
+      </div>
+      <div class="stu-detail">
+        <div><strong>学号：</strong>${stu.id}</div>
+        <div><strong>性别：</strong>${stu.sex}</div>
+        <div><strong>状态：</strong>${statusText}</div>
+      </div>
+    `;
+    box.appendChild(card);
+  })
+}
+
+// 总渲染
+function renderAll(){
+  renderStat(rawData);
+  renderTop3(rawData);
+  renderKing(rawData);
+  renderFail(rawData);
+  renderStu(rawData);
+}
+// 排序切换
+document.getElementById('sortBtn').onclick = function(){
+  if(sortMode === 'total'){
+    sortMode = 'id';
+    this.innerText = '按学号↑';
+  }else{
+    sortMode = 'total';
+    this.innerText = '按总分↓';
+  }
+  renderStu(rawData);
+}
+renderAll();
+</script>
+</body>
+</html>

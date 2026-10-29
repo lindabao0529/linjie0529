@@ -138,6 +138,43 @@
 
 > 提交项目
 
+---
+
+## 记录 14
+
+- **时间**: 2026-10-26 21:30:00
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> （用户上传课程作业截图「等级一 · 基础 L1」）完成学生成绩管理页面：1.班级概览统计（人数/总分/平均分/及格率→4张统计卡）；2.学生卡片列表渲染（头像/五科分数/总分/排名）；3.不及格预警（筛选有不及格科目的学生，按不及格数排序展示）；4.搜索（按姓名或学号实时过滤）；5.排序（按总分降序/按学号升序切换）。考点：DOM查找（getElementById/querySelector/querySelectorAll/createElement/appendChild/innerHTML/classList/setAttribute/closest事件委托）、数组方法（forEach/map/filter/reduce/sort/slice/indexOf）、函数（纯函数/渲染函数/事件处理函数/事件委托/防抖）
+>
+> （说明：2026-10-29 发现本条记录与 students.html 一并丢失——students.html 当时未提交 git 无法恢复，已依据会话内容原样重建；本记录为恢复补录）
+
+---
+
+## 记录 15
+
+- **时间**: 2026-10-29 14:23:27
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 创建技能skill：提交到github，将本项目提交commit并push到 `https://github.com/lindabao0529/linjie0529.git` ，使用已设置公钥。
+>
+> （说明：skill 名定为 commit-github。实测本机网络拦截 22 端口、github.com 直连 SSH 被拒，改用 GitHub 官方 443 通道 ssh://git@ssh.github.com:443/lindabao0529/linjie0529.git，公钥认证实测通过；远程名为 github，与 Gitee 的 origin 共存互不影响。修改全局 ~/.ssh/config 的方案因属用户级配置被安全策略拒绝，skill 采用零配置的 443 URL 方案）
+
+---
+
+## 记录 16
+
+- **时间**: 2026-10-29 14:34:52
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 提交到 github
+>
+> （说明：commit-github skill 首次执行。本次提交内容包含：丢失文件的恢复（students.html、提示词记录 12-15）、commit-github 技能，以及另一会话产出的 starter-level 课程页面、data.js、AGENTS.md、图片素材、index.html 更新与 xhs/ 目录移除）
+
+
 
 
 
