@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- 作者：林洁 ｜ 建立时间：2026-11-02 ｜ 使用模型：GLM-5.3-Flash ｜ 功能：课堂测试8「音乐手机」Tab 选项卡（行情/导购/新品/评测，一比一还原教材截图，JS 外部引用可复用） -->
+<title>课堂测试8 · 音乐手机选项卡</title>
+<style>
+  :root {
+    --linjie_blue: #0066cc;
+    --linjie_tab-border: #a9b4c2;
+    --linjie_tab-active-border: #4a82c8;
+    --linjie_hover-bg: #3366cc;
+    --linjie_txt: #333333;
+    --linjie_date: #999999;
+    --linjie_line: #ccd6e2;
+    --linjie_red: #cc0000;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #ffffff;
+    font-family: "SimSun", "宋体", serif;
+    font-size: 12px;
+    color: var(--linjie_txt);
+    padding: 24px 0 40px;
+  }
+  .linjie_back {
+    display: block; width: 345px; margin: 0 auto 12px;
+    color: #666; text-decoration: none; font-size: 12px;
+  }
+  .linjie_back:hover { color: var(--linjie_blue); text-decoration: underline; }
+
+  /* ===== 整体盒子：345px 白底，与截图一致 ===== */
+  .linjie_box { width: 345px; margin: 0 auto; }
+
+  /* ===== 头部：bg20.gif 横向平铺（1x24 白色渐变条），标题左、选项卡右 ===== */
+  .linjie_header {
+    display: flex;
+    align-items: flex-end;
+    height: 24px;
+    background: url(img/bg20.gif) repeat-x;
+    border-bottom: 1px solid var(--linjie_line);
+  }
+  .linjie_title {
+    flex: 1;
+    font: bold 16px/24px "SimSun", "宋体", serif;
+    color: var(--linjie_blue);
+    padding-left: 8px;
+  }
+
+  /* ===== 选项卡：普通 bg21.gif（灰）／选中 bg22.gif（淡蓝） ===== */
+  .linjie_tablist {
+    display: flex;
+    gap: 2px;
+    list-style: none;
+  }
+  .linjie_tab-btn {
+    width: 46px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--linjie_txt);
+    background: url(img/bg21.gif) repeat-x;
+    border: 1px solid var(--linjie_tab-border);
+    border-bottom: none;
+    cursor: pointer;
+    user-select: none;
+    margin-bottom: -1px; /* 底边压在头部分隔线上 */
+    transition: background .15s, color .15s;
+  }
+  /* 选中态：由 JS 排他切换控制 */
+  .linjie_tab-btn.linjie_active {
+    background: url(img/bg22.gif) repeat-x;
+    border: 1px solid var(--linjie_tab-active-border);
+    border-bottom-color: #f0f7ff; /* 底边融入内容区，形成"凸出"效果 */
+    color: #003399;
+    font-weight: bold;
+  }
+  /* 悬停态：实心蓝底白字（对应截图三中的新品选项卡） */
+  .linjie_tab-btn:hover {
+    background: var(--linjie_hover-bg);
+    border-color: var(--linjie_hover-bg);
+    border-bottom-color: var(--linjie_hover-bg);
+    color: #ffffff;
+  }
+
+  /* ===== 内容面板：默认隐藏，linjie_show 由 JS 排他设置 ===== */
+  .linjie_tab-panel {
+    display: none;
+    list-style: none;
+    padding: 6px 8px 10px;
+  }
+  .linjie_tab-panel.linjie_show { display: block; }
+  .linjie_tab-panel li {
+    display: flex;
+    align-items: baseline;
+    height: 25px;
+    line-height: 25px;
+    padding-left: 18px;
+    /* dot.gif 为三色圆点雪碧图：默认取第一个深灰点（图像 y≈10-12） */
+    background: url(img/dot.gif) no-repeat 0 1px;
+    white-space: nowrap;
+  }
+  .linjie_txt, .linjie_link {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .linjie_date {
+    flex: none;
+    margin-left: 6px;
+    color: var(--linjie_date);
+  }
+
+  /* 新品/评测面板：改用雪碧图中的蓝色圆点（图像 y≈58-60），文字为蓝色链接 */
+  .linjie_tab-panel.linjie_link-panel li { background-position: 0 -47px; }
+  .linjie_link-panel a { color: var(--linjie_blue); text-decoration: none; }
+  .linjie_link-panel a:hover { text-decoration: underline; }
+  .linjie_link-panel a.linjie_hot-link { color: var(--linjie_red); }
+
+  a:focus-visible, .linjie_tab-btn:focus-visible {
+    outline: 1px dashed var(--linjie_blue);
+    outline-offset: 1px;
+  }
+</style>
+</head>
+<body>
+  <a class="linjie_back" href="index.html">← 返回首页</a>
+
+  <div class="linjie_box" id="linjie_music-tabs">
+    <div class="linjie_header">
+      <h2 class="linjie_title">音乐手机</h2>
+      <ul class="linjie_tablist" role="tablist" aria-label="音乐手机资讯分类">
+        <li class="linjie_tab-btn" role="tab" aria-selected="false">行情</li>
+        <li class="linjie_tab-btn" role="tab" aria-selected="false">导购</li>
+        <li class="linjie_tab-btn" role="tab" aria-selected="false">新品</li>
+        <li class="linjie_tab-btn" role="tab" aria-selected="false">评测</li>
+      </ul>
+    </div>
+
+    <!-- 行情：默认选中（defaultIndex: 0），黑色文字 -->
+    <ul class="linjie_tab-panel" role="tabpanel">
+      <li><span class="linjie_txt">音乐强劲苹果iPhone 5价格稳定</span><span class="linjie_date">(12/19)</span></li>
+      <li><span class="linjie_txt">高性能双核音乐机 魅族MX3低价热卖</span><span class="linjie_date">(12/19)</span></li>
+      <li><span class="linjie_txt">音乐品质最出色 vivo X3促销2199</span><span class="linjie_date">(12/12)</span></li>
+      <li><span class="linjie_txt">时尚音乐手机 vivo Xplay报2798元</span><span class="linjie_date">(11/27)</span></li>
+      <li><span class="linjie_txt">好音乐好拍照 OPPO Find5今报价2580元</span><span class="linjie_date">(08/27)</span></li>
+      <li><span class="linjie_txt">1.5GHz四核1080p OPPO Find 5低价热卖</span><span class="linjie_date">(07/30)</span></li>
+      <li><span class="linjie_txt">彩色呼吸带双核机 索尼M35h促销2299</span><span class="linjie_date">(06/08)</span></li>
+      <li><span class="linjie_txt">1.7GHz四核1080p vivo Xplay热卖中</span><span class="linjie_date">(06/07)</span></li>
+    </ul>
+
+    <!-- 导购：黑色文字 -->
+    <ul class="linjie_tab-panel" role="tabpanel">
+      <li><span class="linjie_txt">优秀音效漂亮外观 市售音乐手机盘点</span><span class="linjie_date">(09/13)</span></li>
+      <li><span class="linjie_txt">不要虐待耳朵 8款独特音效的音乐手机推荐</span><span class="linjie_date">(09/06)</span></li>
+      <li><span class="linjie_txt">最低只要799 9款高性能音乐手机推荐</span><span class="linjie_date">(07/22)</span></li>
+      <li><span class="linjie_txt">长假主导后高考时代 奖励孩子的智能手机全攻略</span><span class="linjie_date">(06/13)</span></li>
+      <li><span class="linjie_txt">降价不限时 端午后值得关注降价四核机推荐</span><span class="linjie_date">(06/13)</span></li>
+      <li><span class="linjie_txt">高考之后尽情狂欢！学生超强手机推荐</span><span class="linjie_date">(06/13)</span></li>
+      <li><span class="linjie_txt">上半年看这里 最热1080P四核旗舰手机</span><span class="linjie_date">(06/13)</span></li>
+      <li><span class="linjie_txt">最厚不过7.99毫米 热门超薄强机大搜罗</span><span class="linjie_date">(05/08)</span></li>
+    </ul>
+
+    <!-- 新品：蓝色链接（其中一条为红色高亮，同截图三） -->
+    <ul class="linjie_tab-panel linjie_link-panel" role="tabpanel">
+      <li><a class="linjie_link" href="#">无限接近完美！ vivo Xplay3S现场体验</a><span class="linjie_date">(12/19)</span></li>
+      <li><a class="linjie_link" href="#">入门音乐机 诺基亚Lumia 525现身工信部</a><span class="linjie_date">(11/05)</span></li>
+      <li><a class="linjie_link" href="#">传诺基亚下月将推首款WP音乐手机Glee</a><span class="linjie_date">(09/29)</span></li>
+      <li><a class="linjie_link" href="#">软硬兼施 vivo XStudio Hi-Fi音乐圈讲解</a><span class="linjie_date">(08/23)</span></li>
+      <li><a class="linjie_link" href="#">没有中国 谷歌All Access音乐服务登欧洲</a><span class="linjie_date">(09/09)</span></li>
+      <li><a class="linjie_link" href="#">Hi-Fi录音棚 vivo X3创Kstudio音乐系统</a><span class="linjie_date">(08/07)</span></li>
+      <li><a class="linjie_hot-link linjie_link" href="#">Hi-Fi不够vivo又玩录音棚 X3音乐处理方案曝光</a><span class="linjie_date">(08/06)</span></li>
+      <li><a class="linjie_link" href="#">小伙伴都惊呆了 薄至6mm以下 vivo X3终于曝光</a><span class="linjie_date">(07/31)</span></li>
+    </ul>
+
+    <!-- 评测：蓝色链接 -->
+    <ul class="linjie_tab-panel linjie_link-panel" role="tabpanel">
+      <li><a class="linjie_link" href="#">音乐历久弥新 TD版魅族MX3评测</a><span class="linjie_date">(12/19)</span></li>
+      <li><a class="linjie_link" href="#">极致影音完美音质 步步高vivo Xplay移动版图赏</a><span class="linjie_date">(07/24)</span></li>
+      <li><a class="linjie_link" href="#">都是大屏何不同? 三星S4/Mega静态评测</a><span class="linjie_date">(06/20)</span></li>
+      <li><a class="linjie_link" href="#">超值四核智能机 HTC Desire 608t评测</a><span class="linjie_date">(06/20)</span></li>
+      <li><a class="linjie_link" href="#">完美融合微博 魅族MX2 Flyme 2.2.5体验</a><span class="linjie_date">(06/18)</span></li>
+      <li><a class="linjie_link" href="#">1080p屏Hi-Fi旗舰 vivo Xplay娱乐体验</a><span class="linjie_date">(06/13)</span></li>
+      <li><a class="linjie_link" href="#">5.7英寸高清巨屏 酷派9070+XO影音体验</a><span class="linjie_date">(06/06)</span></li>
+      <li><a class="linjie_link" href="#">悬浮窗口播放 vivo Xplay视频功能体验</a><span class="linjie_date">(05/06)</span></li>
+    </ul>
+  </div>
+
+  <!-- 组件复用：引用 js/tabs.js，传入选择器配置即可；
+       trigger:'both' = 鼠标移过切换（教材交互）+ 点击切换（鼠标操作保障） -->
+  <script src="js/tabs.js"></script>
+  <script>
+    linjie_initTabs({
+      root: '#linjie_music-tabs',
+      tabSelector: '.linjie_tab-btn',
+      panelSelector: '.linjie_tab-panel',
+      activeClass: 'linjie_active',
+      showClass: 'linjie_show',
+      defaultIndex: 0,
+      trigger: 'both'
+    });
+  </script>
+</body>
+</html>

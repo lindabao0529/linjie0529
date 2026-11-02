@@ -1,2 +1,5 @@
 # 私人令牌等敏感文件，禁止提交
 .trae/skills/commit-project/token.txt
+
+# Trae 预览分享缓存
+.trae-html-share-packages/

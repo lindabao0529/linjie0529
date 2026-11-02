@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- 作者：林洁 ｜ 建立时间：2026-11-02 ｜ 使用模型：GLM-5.3-Flash ｜ 功能：新闻 Tab 选项卡页（国内/省内/国际/最热，JS 外部引用、组件可复用） -->
+<title>新闻选项卡 · Tab 组件练习</title>
+<style>
+  :root {
+    --linjie_primary: #2f6fed;
+    --linjie_primary-soft: #eaf1fe;
+    --linjie_ink: #1c2333;
+    --linjie_ink-2: #5b6478;
+    --linjie_line: #e3e7f0;
+    --linjie_paper: #f6f7fb;
+    --linjie_card: #ffffff;
+    --linjie_hot: #d64550;
+    --linjie_radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    background: var(--linjie_paper);
+    color: var(--linjie_ink);
+    line-height: 1.7;
+    padding: 40px 16px 60px;
+  }
+  .linjie_wrap { max-width: 720px; margin: 0 auto; }
+
+  .linjie_back {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--linjie_ink-2); text-decoration: none; font-size: 14px;
+    padding: 6px 12px; border: 1px solid var(--linjie_line); border-radius: 999px;
+    background: var(--linjie_card); transition: all .2s;
+  }
+  .linjie_back:hover { color: var(--linjie_primary); border-color: var(--linjie_primary); }
+
+  .linjie_h1 { font-size: 26px; margin: 18px 0 4px; }
+  .linjie_sub { font-size: 14px; color: var(--linjie_ink-2); margin-bottom: 22px; }
+
+  /* ===== 选项卡 ===== */
+  .linjie_tabs {
+    background: var(--linjie_card);
+    border: 1px solid var(--linjie_line);
+    border-radius: var(--linjie_radius);
+    overflow: hidden;
+    box-shadow: 0 6px 18px rgba(36, 64, 143, .06);
+  }
+  .linjie_tablist {
+    display: flex;
+    border-bottom: 1px solid var(--linjie_line);
+    background: var(--linjie_paper);
+  }
+  .linjie_tab-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 14px 8px;
+    font-size: 15px;
+    color: var(--linjie_ink-2);
+    cursor: pointer;
+    position: relative;
+    transition: color .2s, background .2s;
+  }
+  .linjie_tab-btn:hover { color: var(--linjie_primary); }
+  /* 选中态：白底蓝字 + 底部蓝条（由 JS 排他切换控制） */
+  .linjie_tab-btn.linjie_active {
+    color: var(--linjie_primary);
+    font-weight: 600;
+    background: var(--linjie_card);
+  }
+  .linjie_tab-btn.linjie_active::after {
+    content: "";
+    position: absolute;
+    left: 20%; right: 20%; bottom: -1px;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+    background: var(--linjie_primary);
+  }
+
+  /* ===== 内容面板：默认全部隐藏，linjie_show 由 JS 排他设置 ===== */
+  .linjie_tab-panel { display: none; padding: 10px 22px 18px; }
+  .linjie_tab-panel.linjie_show { display: block; }
+  .linjie_tab-panel ul { list-style: none; }
+  .linjie_tab-panel li {
+    padding: 11px 2px;
+    border-bottom: 1px dashed var(--linjie_line);
+    font-size: 15px;
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+  }
+  .linjie_tab-panel li:last-child { border-bottom: none; }
+  .linjie_time { font-size: 12px; color: var(--linjie_ink-2); flex: none; }
+  .linjie_tag {
+    flex: none;
+    font-size: 12px;
+    color: var(--linjie_primary);
+    background: var(--linjie_primary-soft);
+    padding: 1px 8px;
+    border-radius: 999px;
+  }
+  .linjie_tab-panel.linjie_hot-panel .linjie_tag {
+    color: var(--linjie_hot);
+    background: #fdeeee;
+  }
+  .linjie_note { margin-top: 14px; font-size: 12px; color: var(--linjie_ink-2); text-align: center; }
+
+  button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--linjie_primary);
+    outline-offset: 2px;
+  }
+  @media (max-width: 560px) {
+    .linjie_tab-btn { font-size: 14px; padding: 12px 4px; }
+  }
+</style>
+</head>
+<body>
+  <div class="linjie_wrap">
+    <a class="linjie_back" href="index.html">← 返回首页</a>
+    <h1 class="linjie_h1">新闻选项卡</h1>
+    <p class="linjie_sub">外部引用 js/tabs.js，组件可复用；切换采用「排他思想」</p>
+
+    <!-- 整个选项卡组件：js/tabs.js 通过选择器找到按钮与面板并绑定事件 -->
+    <div class="linjie_tabs" id="linjie_news-tabs">
+      <div class="linjie_tablist" role="tablist" aria-label="新闻分类">
+        <button type="button" class="linjie_tab-btn" role="tab">国内新闻</button>
+        <button type="button" class="linjie_tab-btn" role="tab">省内新闻</button>
+        <button type="button" class="linjie_tab-btn" role="tab">国际新闻</button>
+        <button type="button" class="linjie_tab-btn" role="tab">最热新闻</button>
+      </div>
+
+      <div class="linjie_tab-panel" role="tabpanel">
+        <ul>
+          <li><span class="linjie_time">09:42</span>全国秋粮收获过八成，丰收格局基本定型</li>
+          <li><span class="linjie_time">10:15</span>新一轮产品质量提升行动方案正式发布</li>
+          <li><span class="linjie_time">11:03</span>多地上线"一站式"政务服务便民平台</li>
+          <li><span class="linjie_time">13:27</span>全国铁路今起实行新列车运行图</li>
+        </ul>
+      </div>
+
+      <div class="linjie_tab-panel" role="tabpanel">
+        <ul>
+          <li><span class="linjie_time">08:30</span>我省发布支持中小微企业发展的若干措施</li>
+          <li><span class="linjie_time">09:58</span>全省高校科技成果转化对接周开幕</li>
+          <li><span class="linjie_time">12:20</span>我省新增三条高速通道，路网密度再提升</li>
+          <li><span class="linjie_time">15:46</span>秋季招聘会本周六举行，提供岗位超两万个</li>
+        </ul>
+      </div>
+
+      <div class="linjie_tab-panel" role="tabpanel">
+        <ul>
+          <li><span class="linjie_time">07:12</span>多国代表呼吁加强全球气候领域合作</li>
+          <li><span class="linjie_time">10:41</span>国际航天大会公布新一代深空探测计划</li>
+          <li><span class="linjie_time">14:05</span>全球数字经济规模持续增长，亚太贡献过半</li>
+          <li><span class="linjie_time">16:33</span>联合国教科文组织新增五处世界遗产</li>
+        </ul>
+      </div>
+
+      <div class="linjie_tab-panel linjie_hot-panel" role="tabpanel">
+        <ul>
+          <li><span class="linjie_tag">热</span>大学生用代码还原古城风貌，获百万点赞</li>
+          <li><span class="linjie_tag">热</span>社区食堂"长者餐"升级，一荤两素不超十元</li>
+          <li><span class="linjie_tag">热</span>国产大飞机新增两条直飞航线</li>
+          <li><span class="linjie_tag">热</span>这条国道秋天美成"流动的画廊"</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="linjie_note">练习要点：外部引用 JS ｜ 事件监听 addEventListener ｜ 排他思想（先清除全部选中态，再设置当前元素选中态）</p>
+  </div>
+
+  <!-- 组件是可复用的：页面只需传入自己的选择器配置即可生成一组选项卡 -->
+  <script src="js/tabs.js"></script>
+  <script>
+    linjie_initTabs({
+      root: '#linjie_news-tabs',
+      tabSelector: '.linjie_tab-btn',
+      panelSelector: '.linjie_tab-panel',
+      activeClass: 'linjie_active',
+      showClass: 'linjie_show',
+      defaultIndex: 0
+    });
+  </script>
+</body>
+</html>
