@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Swiper 课堂操作任务 · 大国重器光影展 · 补全 JS</title>
-<!-- Swiper 官方组件库已通过 CDN 引入好，学生只需在底部 <script> 中写初始化代码 -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<!-- Swiper 官方组件库已本地化引入（cdn/swiper/，离线可用），学生只需在底部 <script> 中写初始化代码 -->
+<link rel="stylesheet" href="cdn/swiper/swiper-bundle.min.css">
+<script src="cdn/swiper/swiper-bundle.min.js"></script>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;background:#f6f8fc;color:#1f2937}
@@ -75,6 +75,10 @@
   }
   .wy-fx button:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(29,91,191,.18)}
   .wy-fx button.wy-on{background:linear-gradient(135deg,#0f2b5b,#1d5bbf);color:#fff;border-color:transparent}
+  /* 演示五 · 动态增删展品的按钮行（独立于 wy-fx，避免被演示四的效果切换委托误绑） */
+  .linjie_btns{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 2px}
+  .linjie_btns button{padding:8px 14px;border:1px solid #c9d8ef;border-radius:10px;background:#fff;color:#0f2b5b;font-size:13px;cursor:pointer;transition:.15s}
+  .linjie_btns button:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(29,91,191,.18)}
 
   .wy-back{text-align:center;margin-top:28px}
   .wy-back a{display:inline-block;text-decoration:none;color:#0f2b5b;font-size:14.5px;font-weight:bold;background:#fff;border:1px solid #dbe4ff;border-radius:999px;padding:10px 26px;transition:transform .2s,box-shadow .2s}
@@ -96,7 +100,7 @@
 
   <div class="wy-rule">
     <b>📋 任务说明（先读再动手）：</b><br>
-    ① Swiper 组件库已通过 CDN 引入（页面第 8、9 行），<b>不需要</b>再写引入代码；<br>
+    ① Swiper 组件库已本地引入（页面第 8、9 行，cdn/swiper/ 离线可用），<b>不需要</b>再写引入代码；<br>
     ② 每个"演示台"下面的绿色卡片就是该任务的要求，JS 代码统一写在页面最底部的 <code>&lt;script&gt;</code> 区域内；<br>
     ③ 每完成一个任务就<b>刷新页面验证</b>：能拖、能点、会自己翻，才算通过；<br>
     ④ 控制台（F12）报错是你要最好的朋友——先读报错，再改代码。
@@ -124,6 +128,7 @@
             <div class="swiper-slide"><img src="swiper-imgs/c919_1.jpg" alt="C919大飞机"><div class="wy-cap"><h3>C919 大飞机</h3><p>2023 年商业首航 · 国产干线客机翱翔蓝天</p></div></div>
             <div class="swiper-slide"><img src="swiper-imgs/fendouzhe_1.jpg" alt="奋斗者号"><div class="wy-cap"><h3>奋斗者号</h3><p>10909 米 · 触碰地球第四极马里亚纳海沟</p></div></div>
             <div class="swiper-slide"><img src="swiper-imgs/fast_1.jpg" alt="中国天眼"><div class="wy-cap"><h3>中国天眼 FAST</h3><p>500 米口径 · 世界最大单口径射电望远镜</p></div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/aidu_1_1.jpg" alt="爱达·魔都号"><div class="wy-cap"><h3>爱达·魔都号</h3><p>首艘国产大型邮轮 · 2024 年 1 月 1 日商业首航（AI 生成图）</p></div></div>
           </div>
         </div>
       </div>
@@ -143,15 +148,17 @@
       <span class="wy-star">⭐ 验证标准：点圆点能跳转、点箭头能翻页、最后一张继续往后翻会回到第一张</span>
     </div>
     <div class="wy-demo">
-      <span class="wy-demo-tag">🎛️ 演示二 · 圆点可点 + 箭头可切</span>
+      <span class="wy-demo-tag">🎛️ 演示二 · 圆点可点 + 箭头可切 · 双击图片可缩放（zoom）</span>
       <div class="wy-swiper">
         <div class="swiper" id="wySw2">
           <div class="swiper-wrapper">
-            <div class="swiper-slide"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"><div class="wy-cap"><h3>天宫空间站</h3><p>三舱结构 · 神舟乘组常年值守</p></div></div>
-            <div class="swiper-slide"><img src="swiper-imgs/fuxing_1.jpg" alt="复兴号动车组"><div class="wy-cap"><h3>复兴号动车组</h3><p>京张高铁智能驾驶 · 百年京张到智能京张</p></div></div>
-            <div class="swiper-slide"><img src="swiper-imgs/c919_1.jpg" alt="C919大飞机"><div class="wy-cap"><h3>C919 大飞机</h3><p>让中国人的大飞机梦照进现实</p></div></div>
-            <div class="swiper-slide"><img src="swiper-imgs/fendouzhe_1.jpg" alt="奋斗者号"><div class="wy-cap"><h3>奋斗者号</h3><p>坐底万米 · 深海探测进入"中国时代"</p></div></div>
-            <div class="swiper-slide"><img src="swiper-imgs/fast_1.jpg" alt="中国天眼"><div class="wy-cap"><h3>中国天眼 FAST</h3><p>南仁东先生 22 年铸就的观天巨目</p></div></div>
+            <!-- 任务三：zoom 双击缩放需要把图片包进 .swiper-zoom-container（圆点/箭头/文字说明不变） -->
+            <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"></div><div class="wy-cap"><h3>天宫空间站</h3><p>三舱结构 · 神舟乘组常年值守</p></div></div>
+            <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/fuxing_1.jpg" alt="复兴号动车组"></div><div class="wy-cap"><h3>复兴号动车组</h3><p>京张高铁智能驾驶 · 百年京张到智能京张</p></div></div>
+            <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/c919_1.jpg" alt="C919大飞机"></div><div class="wy-cap"><h3>C919 大飞机</h3><p>让中国人的大飞机梦照进现实</p></div></div>
+            <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/fendouzhe_1.jpg" alt="奋斗者号"></div><div class="wy-cap"><h3>奋斗者号</h3><p>坐底万米 · 深海探测进入"中国时代"</p></div></div>
+            <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/fast_1.jpg" alt="中国天眼"></div><div class="wy-cap"><h3>中国天眼 FAST</h3><p>南仁东先生 22 年铸就的观天巨目</p></div></div>
+            <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/aidu_1_1.jpg" alt="爱达·魔都号"></div><div class="wy-cap"><h3>爱达·魔都号</h3><p>首艘国产大型邮轮 · 2024 年 1 月 1 日商业首航（AI 生成图）</p></div></div>
           </div>
           <div class="swiper-pagination" id="wyPag2"></div>
           <div class="swiper-button-prev" id="wyPrev2"></div>
@@ -183,6 +190,7 @@
             <div class="swiper-slide"><img src="swiper-imgs/c919_1.jpg" alt="C919大飞机"><div class="wy-cap"><h3>C919 大飞机</h3><p>蓝天之上 · 大国担当</p></div></div>
             <div class="swiper-slide"><img src="swiper-imgs/fendouzhe_1.jpg" alt="奋斗者号"><div class="wy-cap"><h3>奋斗者号</h3><p>万米深潜 · 无畏探索</p></div></div>
             <div class="swiper-slide"><img src="swiper-imgs/fast_1.jpg" alt="中国天眼"><div class="wy-cap"><h3>中国天眼 FAST</h3><p>仰望星空 · 脚踏实地</p></div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/aidu_1_1.jpg" alt="爱达·魔都号"><div class="wy-cap"><h3>爱达·魔都号</h3><p>首艘国产大型邮轮 · 2024 年 1 月 1 日商业首航（AI 生成图）</p></div></div>
           </div>
           <div class="swiper-pagination" id="wyPag3"></div>
         </div>
@@ -210,7 +218,18 @@
       <button data-fx="coverflow">coverflow 画廊堆叠（沉浸）</button>
       <button data-fx="flip">flip 翻页（复古）</button>
       <button data-fx="cards">cards 卡片（俏皮）</button>
+      <!-- 任务二·第 7 个按钮：creative 自定义变换（课堂未讲，AI + 官方示例自学） -->
+      <button data-fx="creative">creative 电影墙（AI 自学·超纲）</button>
     </div>
+    <!-- 任务二·用自己的话写下 prev / next 的 transform 各控制什么：
+         prev 控制"已经放过的上一张"的离场姿态——translate 决定它往哪挪：
+         X 用百分号是相对 slide 自身的宽度（'-125%' = 左移出屏再多推 25%），
+         Z 用 px（-260 = 往屏幕里推，看起来变小退远）；rotate 第三位是绕屏幕平面
+         Z 轴的角度（-15 = 向左歪 15°）；opacity 0.4 控制它淡出到什么程度。
+         next 控制"即将进来的下一张"的开场姿态——'105%' 表示从自身宽度 1.05 倍的
+         右侧进场，scale 1.15 让它进场时比正常大 15%（放大冲进来的电影海报感），
+         rotate 8° 轻微右歪后随动画回正。
+         注意：百分号相对的是 slide 自己的尺寸，不是容器也不是视口。 -->
     <div class="wy-demo">
       <span class="wy-demo-tag">🎛️ 演示四 · 效果实验台（点按钮切换 effect）</span>
       <div class="wy-swiper">
@@ -221,9 +240,43 @@
             <div class="swiper-slide"><img src="swiper-imgs/c919_1.jpg" alt="C919大飞机"><div class="wy-cap"><h3>C919 大飞机</h3><p>企业官网爱用 fade</p></div></div>
             <div class="swiper-slide"><img src="swiper-imgs/fendouzhe_1.jpg" alt="奋斗者号"><div class="wy-cap"><h3>奋斗者号</h3><p>游戏网站爱用 cube</p></div></div>
             <div class="swiper-slide"><img src="swiper-imgs/fast_1.jpg" alt="中国天眼"><div class="wy-cap"><h3>中国天眼 FAST</h3><p>相册页面爱用 coverflow</p></div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/aidu_1_1.jpg" alt="爱达·魔都号"><div class="wy-cap"><h3>爱达·魔都号</h3><p>首艘国产大型邮轮 · 2024 年 1 月 1 日商业首航（AI 生成图）</p></div></div>
           </div>
           <div class="swiper-pagination" id="wyPag4"></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 任务 5（超纲加分）· 动态增删展品：appendSlide / prependSlide，参考官方示例 swiper/demo/290-manipulation.html -->
+  <div class="wy-sec">
+    <div class="wy-sec-head">
+      <span class="wy-no">5</span>
+      <h2>动态增删展品<small>appendSlide / prependSlide · 参考官方 290-manipulation 示例</small></h2>
+    </div>
+    <p class="wy-txt">Swiper 不只在初始化时"定格"，运行中还能<b>动态增删 slide</b>：<code>appendSlide(HTML)</code> 往<b>末尾</b>追加、<code>prependSlide(HTML)</code> 往<b>开头</b>插入（都支持传数组一次加多张），分页器与总页数<b>自动重算</b>。下面四个按钮直接操作演示五的轮播。</p>
+    <div class="wy-demo">
+      <span class="wy-demo-tag">🎛️ 演示五 · 动态增删展品（点按钮加展品，看分页器实时变化）</span>
+      <div class="wy-swiper">
+        <div class="swiper" id="linjieSw5">
+          <div class="swiper-wrapper">
+            <div class="swiper-slide"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"><div class="wy-cap"><h3>天宫空间站</h3><p>初始展品 · 天宫空间站</p></div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/fuxing_1.jpg" alt="复兴号动车组"><div class="wy-cap"><h3>复兴号动车组</h3><p>初始展品 · 复兴号动车组</p></div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/c919_1.jpg" alt="C919大飞机"><div class="wy-cap"><h3>C919 大飞机</h3><p>初始展品 · C919 大飞机</p></div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/fendouzhe_1.jpg" alt="奋斗者号"><div class="wy-cap"><h3>奋斗者号</h3><p>初始展品 · 奋斗者号</p></div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/fast_1.jpg" alt="中国天眼"><div class="wy-cap"><h3>中国天眼 FAST</h3><p>初始展品 · 中国天眼 FAST</p></div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/aidu_1_1.jpg" alt="爱达·魔都号"><div class="wy-cap"><h3>爱达·魔都号</h3><p>初始展品 · 爱达·魔都号（AI 生成图）</p></div></div>
+          </div>
+          <div class="swiper-pagination" id="linjiePag5"></div>
+          <div class="swiper-button-prev" id="linjiePrev5"></div>
+          <div class="swiper-button-next" id="linjieNext5"></div>
+        </div>
+      </div>
+      <div class="linjie_btns">
+        <button id="linjiePrepend2">⏫ 前插 2 件（prependSlide）</button>
+        <button id="linjiePrepend1">⬆️ 前插 1 件（prependSlide）</button>
+        <button id="linjieAppend1">⬇️ 追加 1 件（appendSlide）</button>
+        <button id="linjieAppend2">⏬ 追加 2 件（appendSlide）</button>
       </div>
     </div>
   </div>
@@ -248,6 +301,12 @@ var wySw2 = new Swiper("#wySw2", {
       slidesPerView: 1,
       loop: true,
       speed: 600,
+      // 任务三·zoom 双击缩放：slide 内图片需包在 .swiper-zoom-container 里
+      zoom: {
+        maxRatio: 3,     // 双击最大放大到 3 倍
+        minRatio: 1,     // 还原为原始大小
+        toggle: true,    // 双击在 1x 与最大倍数之间切换；放大后可按住拖动平移查看细节
+      },
       pagination: {
         el: "#wyPag2",
         clickable: true,
@@ -298,7 +357,8 @@ document.querySelectorAll('.wy-fx button').forEach(function(btn){
 
     // TODO 3：用新 effect 重建实例（把其它配置原样保留）
     const newFx = this.dataset.fx;
-    wySw4 = new Swiper('#wySw4', {
+    // linjie_fxConf —— 功能：组装重建 #wySw4 的公共配置（循环 + 自动播放 + 圆点 + 当前效果）
+    const linjie_fxConf = {
       loop: true,
       autoplay: {
         delay: 3200,
@@ -308,9 +368,77 @@ document.querySelectorAll('.wy-fx button').forEach(function(btn){
       },
       effect: newFx,
       speed: 800
-    });
+    };
+    // 任务二·creative 电影墙：prev（上一张）缩小左移带角度离场，next（下一张）放大右移进场
+    // 参数参考官方示例 swiper/demo/257-effect-creative.html 与 types/modules/effect-creative.d.ts
+    if (newFx === 'creative') {
+      linjie_fxConf.creativeEffect = {
+        limitProgress: 2,          // 相邻各 2 张参与变形，其余保持统一姿态
+        shadowPerProgress: true,   // 阴影随距离衰减，层次更像电影选片墙
+        prev: {
+          translate: ['-125%', 0, -260],  // X 相对 slide 宽度左移出屏，Z 后退产生缩小感
+          rotate: [0, 0, -15],            // 绕屏幕平面 Z 轴左歪 15°
+          opacity: 0.4                    // 离场时淡出
+        },
+        next: {
+          translate: ['105%', 0, 0],      // 从 slide 自身宽度 1.05 倍的右侧进场
+          scale: 1.15,                    // 进场时放大 15%，有"冲进来"的海报感
+          rotate: [0, 0, 8],              // 轻微右歪后随动画回正
+          opacity: 0.9
+        }
+      };
+    }
+    wySw4 = new Swiper('#wySw4', linjie_fxConf);
   });
 });
+
+// ══════════════════════════════════════════════════════════
+//  任务 5（超纲加分）：动态增删 slide —— 参考 swiper/demo/290-manipulation.html
+// ══════════════════════════════════════════════════════════
+/* linjie_sw5 —— 功能：演示五轮播实例，三屏居中 + fraction 分页器 + 前后箭头（与 290 示例同款配置） */
+var linjie_sw5 = new Swiper('#linjieSw5', {
+  slidesPerView: 3,
+  centeredSlides: true,
+  spaceBetween: 20,
+  speed: 600,
+  pagination: { el: '#linjiePag5', type: 'fraction' },
+  navigation: { nextEl: '#linjieNext5', prevEl: '#linjiePrev5' }
+});
+
+// linjie_pool —— 功能：展品池，动态增删时从中轮转取展品（数组元素为 [图片路径, 展品名称]）
+var linjie_pool = [
+  ['swiper-imgs/tiangong_1.jpg', '天宫空间站'],
+  ['swiper-imgs/fuxing_1.jpg', '复兴号动车组'],
+  ['swiper-imgs/c919_1.jpg', 'C919 大飞机'],
+  ['swiper-imgs/fendouzhe_1.jpg', '奋斗者号'],
+  ['swiper-imgs/fast_1.jpg', '中国天眼 FAST'],
+  ['swiper-imgs/aidu_1_1.jpg', '爱达·魔都号']
+];
+var linjie_ptr = 0;
+
+/* linjie_nextSlide —— 功能：从展品池取下一件（取模循环），拼出一张完整 slide 的 HTML 字符串 */
+function linjie_nextSlide(tag) {
+  var linjie_item = linjie_pool[linjie_ptr % linjie_pool.length];
+  linjie_ptr += 1;
+  return '<div class="swiper-slide"><img src="' + linjie_item[0] + '" alt="' + linjie_item[1] + '"><div class="wy-cap"><h3>' + linjie_item[1] + '</h3><p>' + tag + '</p></div></div>';
+}
+
+/* linjie_bindAdd —— 功能：给动态增删按钮绑定事件监听；prependSlide 插到开头 / appendSlide 追加到末尾 */
+function linjie_bindAdd(id, mode, count) {
+  document.getElementById(id).addEventListener('click', function () {
+    var linjie_batch = [];
+    for (var linjie_i = 0; linjie_i < count; linjie_i++) {
+      linjie_batch.push(linjie_nextSlide((mode === 'prepend' ? '前插 ' : '追加 ') + count + ' 件 · ' + (mode === 'prepend' ? 'prependSlide' : 'appendSlide')));
+    }
+    // 两个 API 都支持传数组一次加多张，分页器与总页数自动重算
+    if (mode === 'prepend') { linjie_sw5.prependSlide(linjie_batch); }
+    else { linjie_sw5.appendSlide(linjie_batch); }
+  });
+}
+linjie_bindAdd('linjiePrepend2', 'prepend', 2);
+linjie_bindAdd('linjiePrepend1', 'prepend', 1);
+linjie_bindAdd('linjieAppend1', 'append', 1);
+linjie_bindAdd('linjieAppend2', 'append', 2);
 </script>
 </body>
 </html>

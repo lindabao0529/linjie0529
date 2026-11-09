@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- 作者：林洁 ｜ 建立时间：2026-11-09 14:12 ｜ 使用模型：GLM-5.3-Flash ｜ 功能：任务一「提示词迭代对比」（两轮 diff + cube 单一变量对照实验），并内置任务二 creative 自定义变换、任务三 zoom 双击缩放 + keyboard 方向键、290-manipulation 动态增删四个演示台（逐台附原理解释），三个任务一页看全 -->
+<title>任务一 · 提示词迭代对比（第一轮 vs 第二轮）</title>
+<link rel="stylesheet" href="cdn/swiper/swiper-bundle.min.css">
+<script src="cdn/swiper/swiper-bundle.min.js"></script>
+<style>
+  :root {
+    --linjie_primary: #1d5bbf;
+    --linjie_deep: #0f2b5b;
+    --linjie_bg: #f6f8fc;
+    --linjie_ok: #16a34a;
+    --linjie_danger: #dc2626;
+    --linjie_warn-bg: #fef7ec;
+    --linjie_ok-bg: #effaf1;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--linjie_bg); color: #1f2937; font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif; padding: 28px 16px 60px; }
+  .linjie_back { display: block; width: max-content; margin: 0 auto 14px; color: var(--linjie_deep); text-decoration: none; font-size: 14px; background: #fff; border: 1px solid #dbe4ff; border-radius: 999px; padding: 8px 22px; }
+  .linjie_back:hover { color: var(--linjie_primary); }
+
+  .linjie_wrap { max-width: 1040px; margin: 0 auto; }
+  .linjie_head { text-align: center; margin-bottom: 22px; }
+  .linjie_head h1 { font-size: 26px; color: var(--linjie_deep); }
+  .linjie_head p { color: #64748b; margin-top: 6px; font-size: 14.5px; }
+
+  /* ── 提示词对比：左右两栏（minmax(0,1fr) 防止内容把网格列撑爆导致横向溢出） ── */
+  .linjie_grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .linjie_card { background: #fff; border-radius: 16px; padding: 18px 20px; box-shadow: 0 10px 26px rgba(15,43,91,.10); border-top: 4px solid var(--linjie_danger); }
+  .linjie_card.linjie_round2 { border-top-color: var(--linjie_ok); }
+  .linjie_card h2 { font-size: 16.5px; color: var(--linjie_deep); margin-bottom: 10px; }
+  .linjie_card h2 small { font-weight: normal; color: #94a3b8; margin-left: 8px; font-size: 12.5px; }
+  .linjie_prompt { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 12px 14px; font-size: 13.5px; line-height: 1.9; white-space: pre-wrap; }
+  .linjie_mark { background: var(--linjie_warn-bg); border-radius: 4px; padding: 1px 5px; color: #b45309; font-weight: bold; }
+  .linjie_verdict { margin-top: 12px; font-size: 13.5px; line-height: 1.9; background: var(--linjie_warn-bg); border-radius: 10px; padding: 10px 14px; }
+  .linjie_round2 .linjie_verdict { background: var(--linjie_ok-bg); }
+  .linjie_verdict b.ok { color: var(--linjie_ok); }
+  .linjie_verdict b.bad { color: var(--linjie_danger); }
+
+  /* ── 配置 diff ── */
+  .linjie_code { background: #0f172a; color: #e2e8f0; border-radius: 10px; padding: 12px 14px; font: 12.5px/1.9 Consolas, "Courier New", monospace; margin-top: 12px; overflow-x: auto; }
+  .linjie_code .linjie_add { color: #4ade80; font-weight: bold; }
+  .linjie_code .linjie_miss { color: #f87171; text-decoration: line-through; }
+  .linjie_code .linjie_note { color: #94a3b8; }
+
+  /* ── 对照实验 ── */
+  .linjie_lab { margin-top: 24px; background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 10px 26px rgba(15,43,91,.10); }
+  .linjie_lab > h2 { font-size: 18px; color: var(--linjie_deep); margin-bottom: 6px; }
+  .linjie_lab > p.tip { color: #64748b; font-size: 13.5px; margin-bottom: 14px; }
+  .linjie_demo { border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; min-width: 0; }
+  .linjie_demo h3 { font-size: 14.5px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .linjie_badge { font-size: 12.5px; border-radius: 999px; padding: 3px 12px; white-space: nowrap; }
+  .linjie_badge.linjie_on { background: var(--linjie_ok-bg); color: var(--linjie_ok); }
+  .linjie_badge.linjie_off { background: #fee2e2; color: var(--linjie_danger); }
+  .linjie_demo .swiper { width: 100%; height: 230px; border-radius: 12px; } /* 必须显式给高度：Swiper 的 slide 默认 height:100%，容器不设高会塌缩为 0 */
+  .linjie_demo .swiper-slide { background: linear-gradient(135deg, #1d5bbf, #0f2b5b); } /* 图片万一未加载时 slide 显示蓝渐变兜底，而非黑块 */
+  .linjie_demo .swiper-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .linjie_demo .linjie_restart { margin-top: 10px; width: 100%; padding: 7px 0; border: 1px solid #c9d8ef; border-radius: 8px; background: #fff; color: var(--linjie_primary); font-size: 12.5px; cursor: pointer; }
+  .linjie_demo .linjie_restart:hover { background: var(--linjie_ok-bg); }
+  .linjie_demo.linjie_wide { grid-column: 1 / -1; } /* 动态增删演示台独占一整行 */
+  .linjie_btnrow { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .linjie_btnrow button { flex: 1; min-width: 110px; padding: 7px 0; border: 1px solid #c9d8ef; border-radius: 8px; background: #fff; color: var(--linjie_primary); font-size: 12.5px; cursor: pointer; }
+  .linjie_btnrow button:hover { background: var(--linjie_ok-bg); }
+  .linjie_demo .swiper-fraction { color: var(--linjie_deep); font-weight: bold; text-align: center; }
+  .linjie_note { margin-top: 10px; padding: 9px 11px; background: #f2f7ff; border-left: 3px solid var(--linjie_primary); border-radius: 0 8px 8px 0; font-size: 12px; line-height: 1.75; color: #3a4a63; }
+  .linjie_note code { background: #dde9fb; padding: 1px 5px; border-radius: 4px; font-family: Consolas, monospace; font-size: 11.5px; color: #0d3d8c; }
+  .linjie_note b { color: var(--linjie_deep); }
+  .linjie_demo:first-of-type .swiper-pagination-bullet { background: var(--linjie_deep); opacity: .3; }
+  .linjie_demo .swiper-pagination-bullet-active { opacity: 1; }
+
+  .linjie_conclusion { margin-top: 20px; background: linear-gradient(135deg, #0f2b5b, #1d5bbf); color: #fff; border-radius: 16px; padding: 18px 22px; font-size: 14.5px; line-height: 2; }
+  .linjie_conclusion b { color: #ffd68a; }
+
+  @media (max-width: 760px) { .linjie_grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+  <a class="linjie_back" href="index.html">← 返回首页</a>
+  <div class="linjie_wrap">
+
+    <div class="linjie_head">
+      <h1>任务一 · 提示词迭代对比</h1>
+      <p>同一个需求，两轮提示词，AI 给出两种"都能跑"的配置——肉眼一拖便知差别</p>
+    </div>
+
+    <!-- 第一部分：两轮提示词原文对比（来自 linjie_prompt.md 记录 23 / 24） -->
+    <div class="linjie_grid">
+      <div class="linjie_card">
+        <h2>第一轮提示词<small>2026-11-05 · 记录 23</small></h2>
+        <div class="linjie_prompt">帮我写一段 new Swiper('#wySw4', { ... }) 的js配置，需求：
+1. 开启无缝循环loop
+2. 自动翻页，3.2秒切换一次
+3. 开启圆点分页器，圆点可以点击切换幻灯片
+4. 切换效果是 cube
+只输出swiper配置对象里面的内容</div>
+        <div class="linjie_verdict">验证结果：<b class="bad">未通过</b>——配置能运行、cube 也生效，但拖动轮播后自动播放<b class="bad">永久停止</b>。漏掉的需求：<b class="bad">"手动操作后自动轮播不能停止"</b>。</div>
+        <div class="linjie_code">autoplay: {
+  delay: 3200
+  <span class="linjie_miss">// disableOnInteraction 缺失</span>
+}
+<span class="linjie_note">/* Swiper 默认 disableOnInteraction: true，
+   用户一拖动 autoplay 就 stop，且不会自己恢复 */</span></div>
+      </div>
+
+      <div class="linjie_card linjie_round2">
+        <h2>第二轮提示词<small>2026-11-09 · 记录 24</small></h2>
+        <div class="linjie_prompt">在上一轮的基础上修改 new Swiper('#wySw4', { ... }) 配置：
+保留之前所有需求：loop无缝循环、3.2s自动翻页、可点击圆点分页器、cube效果。
+<span class="linjie_mark">额外增加一条硬性要求：手动滑动幻灯片之后，自动轮播不能停止，autoplay 必须配置 disableOnInteraction: false。</span>
+只输出swiper配置对象内的内容。</div>
+        <div class="linjie_verdict">验证结果：<b class="ok">通过</b>——拖动后 3.2 秒照常自动翻页，四条需求逐条复核全部满足。关键补丁：<b class="ok">把行为要求翻译成"参数名 + 取值"的硬性条款</b>。</div>
+        <div class="linjie_code">autoplay: {
+  delay: 3200,
+  <span class="linjie_add">disableOnInteraction: false  ← 第二轮新增</span>
+}</div>
+      </div>
+    </div>
+
+    <!-- 第二部分：单一变量对照实验（效果对比图） -->
+    <div class="linjie_lab">
+      <h2>🔬 效果对比图 · 单一变量对照实验</h2>
+      <p class="tip">左右两个轮播配置<b>完全相同</b>（loop + 3.2s + 可点圆点 + cube），<b>唯一差别</b>就是 <code>disableOnInteraction</code>。请分别按住鼠标拖动左右两边，观察 3.2 秒后的状态灯：<b style="color:var(--linjie_danger)">左边会熄灭</b>，右边保持常亮。</p>
+      <div class="linjie_grid">
+        <div class="linjie_demo">
+          <h3>第一轮配置（缺 disableOnInteraction）<span class="linjie_badge linjie_on" id="linjieBadgeA">● 自动播放运行中</span></h3>
+          <div class="swiper" id="linjieSwA">
+            <div class="swiper-wrapper">
+              <div class="swiper-slide"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"></div>
+              <div class="swiper-slide"><img src="swiper-imgs/fuxing_1.jpg" alt="复兴号动车组"></div>
+              <div class="swiper-slide"><img src="swiper-imgs/c919_1.jpg" alt="C919 大飞机"></div>
+              <div class="swiper-slide"><img src="swiper-imgs/fendouzhe_1.jpg" alt="奋斗者号"></div>
+            </div>
+            <div class="swiper-pagination" id="linjiePagA"></div>
+          </div>
+          <button class="linjie_restart" id="linjieRestartA">重新开始自动播放（autoplay.start()）</button>
+        </div>
+        <div class="linjie_demo">
+          <h3>第二轮配置（disableOnInteraction: false）<span class="linjie_badge linjie_on" id="linjieBadgeB">● 自动播放运行中</span></h3>
+          <div class="swiper" id="linjieSwB">
+            <div class="swiper-wrapper">
+              <div class="swiper-slide"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"></div>
+              <div class="swiper-slide"><img src="swiper-imgs/fuxing_1.jpg" alt="复兴号动车组"></div>
+              <div class="swiper-slide"><img src="swiper-imgs/c919_1.jpg" alt="C919 大飞机"></div>
+              <div class="swiper-slide"><img src="swiper-imgs/fendouzhe_1.jpg" alt="奋斗者号"></div>
+            </div>
+            <div class="swiper-pagination" id="linjiePagB"></div>
+          </div>
+          <button class="linjie_restart" id="linjieRestartB">重新开始自动播放（autoplay.start()）</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 第二部分（续）：任务二 & 任务三 & 动态增删——swiper-task.html 演示台浓缩版，逐台附原理解释 -->
+    <div class="linjie_lab">
+      <h2>🎬 任务二 & 任务三 · creative / zoom / keyboard / 动态增删（含解释）</h2>
+      <div class="linjie_grid">
+        <div class="linjie_demo">
+          <h3>任务二 · creative 自定义变换<span class="linjie_badge linjie_on">● 自动播放运行中</span></h3>
+          <div class="swiper" id="linjieSwC">
+            <div class="swiper-wrapper">
+              <div class="swiper-slide"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"></div>
+              <div class="swiper-slide"><img src="swiper-imgs/fuxing_1.jpg" alt="复兴号动车组"></div>
+              <div class="swiper-slide"><img src="swiper-imgs/c919_1.jpg" alt="C919 大飞机"></div>
+              <div class="swiper-slide"><img src="swiper-imgs/fendouzhe_1.jpg" alt="奋斗者号"></div>
+              <div class="swiper-slide"><img src="swiper-imgs/aidu_1_1.jpg" alt="爱达·魔都号"></div>
+            </div>
+            <div class="swiper-pagination" id="linjiePagC"></div>
+          </div>
+          <p class="linjie_note"><b>原理：</b>creativeEffect 的 <code>prev/next</code> 描述"前一张/后一张"的离场进场姿态。<b>translate 的百分号相对 slide 自身尺寸</b>（X 相对宽、Y 相对高，Z 只能用 px）——<code>['-130%', 0, -220]</code> 表示推到自己 1.3 倍宽的左边并后退 220px；<b>rotate 三位 = 绕 X/Y/Z 轴的角度</b>，Z 轴即屏幕内倾斜 20°；<code>opacity: 0.4</code> 让上一张渐隐。参数完全自定，观感如电影选片墙。</p>
+        </div>
+        <div class="linjie_demo">
+          <h3>任务三 · zoom 双击缩放 + keyboard 方向键<span class="linjie_badge linjie_on">● 双击缩放 / 方向键翻页</span></h3>
+          <div class="swiper" id="linjieSwD">
+            <div class="swiper-wrapper">
+              <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/aidu_1_1.jpg" alt="爱达·魔都号"></div></div>
+              <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"></div></div>
+              <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/fendouzhe_1.jpg" alt="奋斗者号"></div></div>
+            </div>
+            <div class="swiper-pagination" id="linjiePagD"></div>
+          </div>
+          <p class="linjie_note"><b>原理：</b>图片必须包在 <code>swiper-zoom-container</code> 里，Swiper 才接管缩放——<code>zoom.maxRatio: 3</code> 上限 3 倍，<code>toggle: true</code> 双击切换放大/还原，放大后可拖动平移。<code>keyboard.enabled</code> 开启方向键翻页；<code>onlyInViewport: true</code> 让轮播<b>只在滚进视口时响应按键</b>——Swiper 把键盘事件绑在 document 上，触发时先检查自身与视口的位置关系再切换，避免长页面多个轮播一起动。</p>
+        </div>
+        <div class="linjie_demo linjie_wide">
+          <h3>290-manipulation · 动态增删展品（appendSlide / prependSlide）<span class="linjie_badge linjie_on">● fraction 分页器实时重算总数</span></h3>
+          <div class="swiper" id="linjieSwE">
+            <div class="swiper-wrapper">
+              <div class="swiper-slide"><img src="swiper-imgs/aidu_1_1.jpg" alt="爱达·魔都号"></div>
+              <div class="swiper-slide"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"></div>
+              <div class="swiper-slide"><img src="swiper-imgs/fendouzhe_1.jpg" alt="奋斗者号"></div>
+            </div>
+            <div class="swiper-pagination" id="linjiePagE"></div>
+          </div>
+          <div class="linjie_btnrow">
+            <button id="linjiePrepend1">前插 1 件</button>
+            <button id="linjiePrepend2">前插 2 件</button>
+            <button id="linjieAppend1">追加 1 件</button>
+            <button id="linjieAppend2">追加 2 件</button>
+          </div>
+          <p class="linjie_note"><b>原理：</b><code>appendSlide(HTML字符串)</code> / <code>prependSlide(数组)</code> 在运行时插拔 slide（本页从 5 件展品池轮转取材生成新节点）；<code>slidesPerView: 1.5 + centeredSlides: true</code> 做出三屏居中效果；分页器 <code>type: 'fraction'</code> 显示"当前 / 总数"，插拔后 Swiper 自动重算 slide 总数并刷新显示，无需手动 update。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 第三部分：一句话结论 -->
+    <div class="linjie_conclusion">
+      💡 <b>一句话结论：</b>提示词漏掉一个行为词，AI 就会替你"合理默认"一个坑——需求必须翻译成 <b>显式的参数名和取值</b>（disableOnInteraction: false），并且要<b>亲手拖动验证</b>，不能只看代码"长得对"。本页四块演示台（cube 对照 / creative / zoom+keyboard / 动态增删）就是 swiper-task.html 全部效果的浓缩版，答辩时一页讲完三个任务。
+    </div>
+
+  </div>
+
+  <script>
+  /* linjie_makeSwiper —— 功能：按"第一轮/第二轮"两种配置创建 cube 轮播；参数 linjie_full 用于切换 disableOnInteraction 这唯一变量 */
+  function linjie_makeSwiper(linjie_id, linjie_pag, linjie_full) {
+    var linjie_swiper = new Swiper(linjie_id, {
+      effect: 'cube',
+      loop: true,
+      speed: 700,
+      grabCursor: true,
+      observer: true,            /* 容器或子元素变化时自动 update，防止尺寸测量过期 */
+      observeParents: true,
+      autoplay: {
+        delay: 3200,
+        disableOnInteraction: linjie_full  // ← 对照实验的唯一变量
+      },
+      pagination: { el: linjie_pag, clickable: true },
+      cubeEffect: { slideShadows: true, shadow: true, shadowOffset: 30, shadowScale: 0.9 }
+    });
+    return linjie_swiper;
+  }
+
+  /* linjie_watchAutoplay —— 功能：监听 autoplayStop / autoplayStart 事件，驱动状态灯实时显示"运行中 / 已停止" */
+  function linjie_watchAutoplay(linjie_swiper, linjie_badgeId) {
+    var linjie_badge = document.getElementById(linjie_badgeId);
+    function linjie_set(linjie_on) {
+      linjie_badge.textContent = linjie_on ? '● 自动播放运行中' : '⏸ 已停止（手动操作后）';
+      linjie_badge.classList.toggle('linjie_on', linjie_on);
+      linjie_badge.classList.toggle('linjie_off', !linjie_on);
+    }
+    linjie_set(true);
+    linjie_swiper.on('autoplayStop', function () { linjie_set(false); });
+    linjie_swiper.on('autoplayStart', function () { linjie_set(true); });
+  }
+
+  /* linjie_bindRestart —— 功能：绑定"重新开始自动播放"按钮，调用 autoplay.start() 复位演示 */
+  function linjie_bindRestart(linjie_btnId, linjie_swiper) {
+    document.getElementById(linjie_btnId).addEventListener('click', function () {
+      linjie_swiper.autoplay.start();
+    });
+  }
+
+  /* linjie_makeCreative —— 功能：任务二 creative 电影选片墙——prev 缩小左移+Z 轴 20° 离场，next 放大右侧进场 */
+  function linjie_makeCreative() {
+    return new Swiper('#linjieSwC', {
+      effect: 'creative',
+      loop: true,
+      speed: 700,
+      grabCursor: true,
+      observer: true,
+      observeParents: true,
+      autoplay: { delay: 3200, disableOnInteraction: false },
+      pagination: { el: '#linjiePagC', clickable: true },
+      creativeEffect: {
+        limitProgress: 2,
+        prev: { translate: ['-130%', 0, -220], rotate: [0, 0, -20], opacity: 0.4 },
+        next: { translate: ['110%', 0, 0], scale: 1.15, rotate: [0, 0, 10] }
+      }
+    });
+  }
+
+  /* linjie_makeZoomKb —— 功能：任务三 zoom 双击缩放（maxRatio 3）+ keyboard 方向键（仅视口内响应） */
+  function linjie_makeZoomKb() {
+    return new Swiper('#linjieSwD', {
+      loop: true,
+      speed: 700,
+      grabCursor: true,
+      observer: true,
+      observeParents: true,
+      autoplay: { delay: 3200, disableOnInteraction: false },
+      pagination: { el: '#linjiePagD', clickable: true },
+      zoom: { maxRatio: 3, toggle: true },
+      keyboard: { enabled: true, onlyInViewport: true }
+    });
+  }
+
+  /* linjie_makeManip —— 功能：290-manipulation 动态增删 slide——展品池轮转生成 HTML，前插/追加后 fraction 分页器自动重算总数 */
+  function linjie_makeManip() {
+    var linjie_pool = [
+      { img: 'swiper-imgs/tiangong_1.jpg', alt: '天宫空间站' },
+      { img: 'swiper-imgs/fuxing_1.jpg', alt: '复兴号动车组' },
+      { img: 'swiper-imgs/c919_1.jpg', alt: 'C919 大飞机' },
+      { img: 'swiper-imgs/fendouzhe_1.jpg', alt: '奋斗者号' },
+      { img: 'swiper-imgs/aidu_1_1.jpg', alt: '爱达·魔都号' }
+    ];
+    var linjie_ptr = 0;
+    function linjie_slideHTML() {
+      var linjie_item = linjie_pool[linjie_ptr % linjie_pool.length];
+      linjie_ptr++;
+      return '<div class="swiper-slide"><img src="' + linjie_item.img + '" alt="' + linjie_item.alt + '"></div>';
+    }
+    var linjie_sw = new Swiper('#linjieSwE', {
+      slidesPerView: 1.5,
+      centeredSlides: true,
+      spaceBetween: 12,
+      speed: 700,
+      grabCursor: true,
+      observer: true,
+      observeParents: true,
+      autoplay: { delay: 3200, disableOnInteraction: false },
+      pagination: { el: '#linjiePagE', type: 'fraction' }
+    });
+    document.getElementById('linjiePrepend1').addEventListener('click', function () { linjie_sw.prependSlide(linjie_slideHTML()); });
+    document.getElementById('linjiePrepend2').addEventListener('click', function () { linjie_sw.prependSlide([linjie_slideHTML(), linjie_slideHTML()]); });
+    document.getElementById('linjieAppend1').addEventListener('click', function () { linjie_sw.appendSlide(linjie_slideHTML()); });
+    document.getElementById('linjieAppend2').addEventListener('click', function () { linjie_sw.appendSlide([linjie_slideHTML(), linjie_slideHTML()]); });
+    return linjie_sw;
+  }
+
+  /* 等图片与布局全部就绪后再初始化，确保 Swiper 测到的容器宽度是最终值 */
+  window.addEventListener('load', function () {
+    linjie_swA = linjie_makeSwiper('#linjieSwA', '#linjiePagA', false); // 第一轮：disableOnInteraction 默认 true
+    linjie_swB = linjie_makeSwiper('#linjieSwB', '#linjiePagB', true);  // 第二轮：disableOnInteraction false
+    linjie_watchAutoplay(linjie_swA, 'linjieBadgeA');
+    linjie_watchAutoplay(linjie_swB, 'linjieBadgeB');
+    linjie_bindRestart('linjieRestartA', linjie_swA);
+    linjie_bindRestart('linjieRestartB', linjie_swB);
+    linjie_makeCreative(); // 任务二：creative 自定义变换
+    linjie_makeZoomKb();   // 任务三：zoom 双击缩放 + keyboard 方向键
+    linjie_makeManip();    // 290-manipulation：动态增删展品
+  });
+  </script>
+</body>
+</html>

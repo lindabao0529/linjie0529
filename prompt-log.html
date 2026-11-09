@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- 作者：林洁 ｜ 建立时间：2026-11-09 15:06 ｜ 使用模型：GLM-5.3-Flash ｜ 功能：提示词记录全档展示页——实时读取根目录 linjie_prompt.md，用自写轻量 markdown 渲染器呈现全部 39+ 条 AI 会话记录，作为课程「AI 提示词工程师」环节的过程性证据入口 -->
+<title>提示词记录全档 · 林洁的《高级网页设计》课堂实践</title>
+<style>
+  :root {
+    --linjie_primary: #2f6fed;
+    --linjie_deep: #1d4ed8;
+    --linjie_txt: #33415e;
+    --linjie_border: #e3e9f3;
+    --linjie_soft: #f4f8ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: linear-gradient(180deg, #f5f8ff 0%, #eef3fc 100%);
+    min-height: 100vh;
+    color: var(--linjie_txt);
+    padding: 30px 16px 50px;
+  }
+  .linjie_back { display: inline-block; margin-bottom: 16px; color: #66738f; text-decoration: none; font-size: 13px; }
+  .linjie_back:hover { color: var(--linjie_primary); text-decoration: underline; }
+  .linjie_wrap { max-width: 920px; margin: 0 auto; }
+  .linjie_head { text-align: center; margin-bottom: 22px; }
+  .linjie_head h1 { font-size: 26px; color: var(--linjie_deep); margin-bottom: 8px; }
+  .linjie_head p { font-size: 13.5px; color: #8a97b0; }
+  .linjie_head code { background: #eaf1fd; padding: 1px 6px; border-radius: 4px; font-family: Consolas, monospace; font-size: 12.5px; color: #0d3d8c; }
+
+  /* ===== markdown 渲染容器 ===== */
+  .linjie-md { background: #ffffff; border: 1px solid var(--linjie_border); border-radius: 14px; padding: 26px 30px; box-shadow: 0 10px 30px rgba(47, 111, 237, .08); font-size: 13.5px; line-height: 1.9; }
+  .linjie-md h3 { color: var(--linjie_primary); font-size: 15.5px; margin: 18px 0 8px; padding-bottom: 6px; border-bottom: 1px dashed #d5e0f2; }
+  .linjie-md h3:first-child { margin-top: 0; }
+  .linjie-md blockquote { margin: 8px 0; padding: 8px 14px; background: var(--linjie_soft); border-left: 3px solid var(--linjie_primary); border-radius: 0 8px 8px 0; color: #46598a; }
+  .linjie-md blockquote p { margin: 3px 0; }
+  .linjie-md ul { margin: 6px 0; padding-left: 22px; }
+  .linjie-md li { margin: 3px 0; }
+  .linjie-md code { background: #eaf1fd; padding: 1px 6px; border-radius: 4px; font-family: Consolas, monospace; font-size: 12.5px; color: #0d3d8c; }
+  .linjie-md pre { background: var(--linjie_soft); border: 1px solid #dbe6f7; border-radius: 8px; padding: 10px 14px; overflow-x: auto; margin: 8px 0; }
+  .linjie-md pre code { background: none; padding: 0; }
+  .linjie-md hr { border: none; border-top: 1px solid var(--linjie_border); margin: 16px 0; }
+  .linjie-md p { margin: 6px 0; }
+  .linjie-md-tip { font-size: 12.5px; color: #8a97b0; margin-top: 10px; text-align: center; }
+  .linjie-md-err { background: #fff7e6; border: 1px solid #f0cf8a; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #9a6b00; }
+  .linjie-md-err a { color: var(--linjie_primary); }
+</style>
+</head>
+<body>
+  <div class="linjie_wrap">
+    <a class="linjie_back" href="index.html">← 返回首页</a>
+    <div class="linjie_head">
+      <h1>提示词记录全档</h1>
+      <p>实时加载根目录 <code>linjie_prompt.md</code>——本项目每一轮 AI 会话的原始提示词、使用模型与说明</p>
+    </div>
+    <div class="linjie-md" id="linjieMdBox">加载中…</div>
+    <p class="linjie-md-tip">注：需通过 http 方式访问（如 GitHub Pages、IDE 预览或本地服务器）才能读取 md 文件；直接双击 file:// 打开时浏览器会拦截本地文件读取。</p>
+  </div>
+
+  <script>
+    /* linjie_escapeHTML —— 功能：将文本中的 HTML 特殊字符转义，防止 md 内容被当作标签执行 */
+    function linjie_escapeHTML(linjie_str) {
+      return linjie_str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    /* linjie_inlineMd —— 功能：行内 markdown 渲染——`code` 与 **加粗** */
+    function linjie_inlineMd(linjie_line) {
+      return linjie_line
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    }
+
+    /* linjie_renderMd —— 功能：把 linjie_prompt.md 文本渲染为 HTML——支持 ## 标题、> 引用、- 列表、--- 分隔线、``` 代码块与行内标记 */
+    function linjie_renderMd(linjie_text) {
+      var linjie_lines = linjie_text.split(/\r?\n/);
+      var linjie_html = '';
+      var linjie_inCode = false;
+      var linjie_inQuote = false;
+      var linjie_inList = false;
+
+      /* linjie_closeAll —— 功能：收起未闭合的引用块与列表，保证输出标签配对 */
+      function linjie_closeAll() {
+        if (linjie_inQuote) { linjie_html += '</blockquote>'; linjie_inQuote = false; }
+        if (linjie_inList) { linjie_html += '</ul>'; linjie_inList = false; }
+      }
+
+      linjie_lines.forEach(function (linjie_raw) {
+        if (/^```/.test(linjie_raw)) { // 代码围栏开/闭
+          linjie_closeAll();
+          linjie_html += linjie_inCode ? '</pre>' : '<pre>';
+          linjie_inCode = !linjie_inCode;
+          return;
+        }
+        if (linjie_inCode) { linjie_html += linjie_escapeHTML(linjie_raw) + '\n'; return; }
+        if (/^---\s*$/.test(linjie_raw)) { linjie_closeAll(); linjie_html += '<hr>'; return; }
+        if (/^##\s+/.test(linjie_raw)) {
+          linjie_closeAll();
+          linjie_html += '<h3>' + linjie_inlineMd(linjie_escapeHTML(linjie_raw.replace(/^##\s+/, ''))) + '</h3>';
+          return;
+        }
+        if (/^>\s?/.test(linjie_raw)) {
+          if (!linjie_inQuote) { linjie_closeAll(); linjie_html += '<blockquote>'; linjie_inQuote = true; }
+          linjie_html += '<p>' + linjie_inlineMd(linjie_escapeHTML(linjie_raw.replace(/^>\s?/, ''))) + '</p>';
+          return;
+        }
+        if (/^-\s+/.test(linjie_raw)) {
+          if (!linjie_inList) { linjie_closeAll(); linjie_html += '<ul>'; linjie_inList = true; }
+          linjie_html += '<li>' + linjie_inlineMd(linjie_escapeHTML(linjie_raw.replace(/^-\s+/, ''))) + '</li>';
+          return;
+        }
+        if (/^\s*$/.test(linjie_raw)) { linjie_closeAll(); return; }
+        linjie_closeAll();
+        linjie_html += '<p>' + linjie_inlineMd(linjie_escapeHTML(linjie_raw)) + '</p>';
+      });
+      linjie_closeAll();
+      if (linjie_inCode) { linjie_html += '</pre>'; }
+      return linjie_html;
+    }
+
+    /* 页面加载后拉取 linjie_prompt.md 并渲染；file:// 协议下 fetch 会被浏览器拦截，给出降级提示 */
+    (function () {
+      var linjie_box = document.getElementById('linjieMdBox');
+      fetch('linjie_prompt.md')
+        .then(function (linjie_res) {
+          if (!linjie_res.ok) { throw new Error('HTTP ' + linjie_res.status); }
+          return linjie_res.text();
+        })
+        .then(function (linjie_text) {
+          linjie_box.innerHTML = linjie_renderMd(linjie_text);
+        })
+        .catch(function () {
+          linjie_box.innerHTML = '<div class="linjie-md-err">未能读取 linjie_prompt.md（当前可能以 file:// 方式打开，浏览器拦截了本地文件请求）。' +
+            '请改用 http 方式访问本页，或到仓库根目录直接查看 <a href="linjie_prompt.md">linjie_prompt.md</a> 原文件。</div>';
+        });
+    })();
+  </script>
+</body>
+</html>
