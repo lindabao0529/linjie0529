@@ -234,6 +234,71 @@
 >
 > （说明：按课堂测试8作业命名 test8.html，1:1 还原四张截图（音乐手机：行情/导购/新品/评测）；使用教材素材 img/bg20.gif、bg21.gif、bg22.gif、dot.gif（三色圆点雪碧图）；复用 js/tabs.js 可复用组件并为其扩展 trigger 触发方式配置（mouseover 移过切换 + click 点击切换））
 
+---
+
+## 记录 22
+
+- **时间**: 2026-11-05 14:38:43
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 请基于 HTML、CSS、JavaScript 和 Swiper 实现一个课程演示网站。页面顶部有 6 个效果切换按钮，分别对应 slide、fade、cube、coverflow、flip、cards。中间是一个横向轮播区域，默认使用 slide 平推效果。轮播底部有圆点分页器。页面加载后自动播放，每 3.2 秒切换一次。点击不同按钮时，销毁当前 Swiper 实例，并用对应 effect 参数重新初始化，实现轮播效果实时切换。按钮高亮逻辑：点击哪个按钮，哪个按钮添加 wy-on 类，其他按钮移除该类。整体界面采用蓝白科技风，卡片圆角、柔和阴影、清晰层级，排版整洁。
+>
+> （说明：新建 swiper-demo.html；Swiper 11 bundle 下载至 cdn/swiper/ 本地引用；按项目命名规则 wy-on 落地为 linjie_on；切换按钮采用「销毁实例 + 对应 effect 重新初始化」模式，自动播放 3200ms）
+
+---
+
+## 记录 23
+
+- **时间**: 2026-11-09 10:16:25
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 帮我写一段 new Swiper('#wySw4', { ... }) 的js配置，需求：1. 开启无缝循环loop 2. 自动翻页，3.2秒切换一次 3. 开启圆点分页器，圆点可以点击切换幻灯片 4. 切换效果是 cube。只输出swiper配置对象里面的内容，不要多余html，不要额外解释。
+>
+> （说明：纯配置片段输出，直接回复代码块，不落地文件）
+
+---
+
+## 记录 24
+
+- **时间**: 2026-11-09 10:17:51
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 在上一轮的基础上修改 new Swiper('#wySw4', { ... }) 配置：保留之前所有需求：loop无缝循环、3.2s自动翻页、可点击圆点分页器、cube效果。额外增加一条硬性要求：手动滑动幻灯片之后，自动轮播不能停止，autoplay必须配置 disableOnInteraction: false。只输出swiper配置对象内的内容。
+>
+> （说明：上一轮配置已含 disableOnInteraction: false，本轮按硬性要求保留并明示；继续纯片段回复）
+
+---
+
+## 记录 25
+
+- **时间**: 2026-11-09 10:23:52
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 帮我写Swiper任务二完整代码，使用原生HTML+JS引入Swiper11。任务要求：1. 实现自定义分页器（pagination），不是默认小圆点 2. 分页指示器可以点击，点击切换对应slide 3. 自定义分页样式：选中和未选中样式区分开 4. 保留自动轮播、循环loop 5. 代码要有注释，结构清晰，直接保存html就能打开运行 6. 输出：完整单文件HTML，附带每一部分配置说明 7. 不要Vue、不要uni-app，原生Swiper
+>
+> （说明：新建 swiper-task2.html 单文件；分页器用 pagination type:'custom' + renderCustom 渲染数字胶囊指示器，bulletClass/bulletActiveClass 自定义为 linjie_page-item/linjie_page-active，clickable:true 可点击；loop 中用 realIndex + 过滤 swiper-slide-duplicate 求真实总数，避免循环复制的干扰；Swiper 11 引用本地 cdn/swiper/）
+
+---
+
+## 记录 26
+
+- **时间**: 2026-11-09 10:32:42
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 全部提交到`https://github.com/lindabao0529/linjie0529.git`
+>
+> （说明：按 commit-github 技能执行——全量提交并推送到 GitHub 远程 github/main）
+
+
+
+
+
+
 
 
 
