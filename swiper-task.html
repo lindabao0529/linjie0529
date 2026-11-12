@@ -148,17 +148,16 @@
       <span class="wy-star">⭐ 验证标准：点圆点能跳转、点箭头能翻页、最后一张继续往后翻会回到第一张</span>
     </div>
     <div class="wy-demo">
-      <span class="wy-demo-tag">🎛️ 演示二 · 圆点可点 + 箭头可切 · 双击图片可缩放（zoom）</span>
+      <span class="wy-demo-tag">🎛️ 演示二 · 圆点可点 + 箭头可切</span>
       <div class="wy-swiper">
         <div class="swiper" id="wySw2">
           <div class="swiper-wrapper">
-            <!-- 任务三：zoom 双击缩放需要把图片包进 .swiper-zoom-container（圆点/箭头/文字说明不变） -->
-            <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"></div><div class="wy-cap"><h3>天宫空间站</h3><p>三舱结构 · 神舟乘组常年值守</p></div></div>
-            <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/fuxing_1.jpg" alt="复兴号动车组"></div><div class="wy-cap"><h3>复兴号动车组</h3><p>京张高铁智能驾驶 · 百年京张到智能京张</p></div></div>
-            <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/c919_1.jpg" alt="C919大飞机"></div><div class="wy-cap"><h3>C919 大飞机</h3><p>让中国人的大飞机梦照进现实</p></div></div>
-            <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/fendouzhe_1.jpg" alt="奋斗者号"></div><div class="wy-cap"><h3>奋斗者号</h3><p>坐底万米 · 深海探测进入"中国时代"</p></div></div>
-            <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/fast_1.jpg" alt="中国天眼"></div><div class="wy-cap"><h3>中国天眼 FAST</h3><p>南仁东先生 22 年铸就的观天巨目</p></div></div>
-            <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/aidu_1_1.jpg" alt="爱达·魔都号"></div><div class="wy-cap"><h3>爱达·魔都号</h3><p>首艘国产大型邮轮 · 2024 年 1 月 1 日商业首航（AI 生成图）</p></div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"><div class="wy-cap"><h3>天宫空间站</h3><p>三舱结构 · 神舟乘组常年值守</p></div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/fuxing_1.jpg" alt="复兴号动车组"><div class="wy-cap"><h3>复兴号动车组</h3><p>京张高铁智能驾驶 · 百年京张到智能京张</p></div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/c919_1.jpg" alt="C919大飞机"><div class="wy-cap"><h3>C919 大飞机</h3><p>让中国人的大飞机梦照进现实</p></div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/fendouzhe_1.jpg" alt="奋斗者号"><div class="wy-cap"><h3>奋斗者号</h3><p>坐底万米 · 深海探测进入"中国时代"</p></div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/fast_1.jpg" alt="中国天眼"><div class="wy-cap"><h3>中国天眼 FAST</h3><p>南仁东先生 22 年铸就的观天巨目</p></div></div>
+            <div class="swiper-slide"><img src="swiper-imgs/aidu_1_1.jpg" alt="爱达·魔都号"><div class="wy-cap"><h3>爱达·魔都号</h3><p>首艘国产大型邮轮 · 2024 年 1 月 1 日商业首航（AI 生成图）</p></div></div>
           </div>
           <div class="swiper-pagination" id="wyPag2"></div>
           <div class="swiper-button-prev" id="wyPrev2"></div>
@@ -256,16 +255,16 @@
     </div>
     <p class="wy-txt">Swiper 不只在初始化时"定格"，运行中还能<b>动态增删 slide</b>：<code>appendSlide(HTML)</code> 往<b>末尾</b>追加、<code>prependSlide(HTML)</code> 往<b>开头</b>插入（都支持传数组一次加多张），分页器与总页数<b>自动重算</b>。下面四个按钮直接操作演示五的轮播。</p>
     <div class="wy-demo">
-      <span class="wy-demo-tag">🎛️ 演示五 · 动态增删展品（点按钮加展品，看分页器实时变化）</span>
+      <span class="wy-demo-tag">🎛️ 演示五 · 动态增删展品（点按钮加展品看分页器实时变化 · 双击展品图可缩放 zoom）</span>
       <div class="wy-swiper">
         <div class="swiper" id="linjieSw5">
           <div class="swiper-wrapper">
-            <div class="swiper-slide"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"><div class="wy-cap"><h3>天宫空间站</h3><p>初始展品 · 天宫空间站</p></div></div>
-            <div class="swiper-slide"><img src="swiper-imgs/fuxing_1.jpg" alt="复兴号动车组"><div class="wy-cap"><h3>复兴号动车组</h3><p>初始展品 · 复兴号动车组</p></div></div>
-            <div class="swiper-slide"><img src="swiper-imgs/c919_1.jpg" alt="C919大飞机"><div class="wy-cap"><h3>C919 大飞机</h3><p>初始展品 · C919 大飞机</p></div></div>
-            <div class="swiper-slide"><img src="swiper-imgs/fendouzhe_1.jpg" alt="奋斗者号"><div class="wy-cap"><h3>奋斗者号</h3><p>初始展品 · 奋斗者号</p></div></div>
-            <div class="swiper-slide"><img src="swiper-imgs/fast_1.jpg" alt="中国天眼"><div class="wy-cap"><h3>中国天眼 FAST</h3><p>初始展品 · 中国天眼 FAST</p></div></div>
-            <div class="swiper-slide"><img src="swiper-imgs/aidu_1_1.jpg" alt="爱达·魔都号"><div class="wy-cap"><h3>爱达·魔都号</h3><p>初始展品 · 爱达·魔都号（AI 生成图）</p></div></div>
+            <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/tiangong_1.jpg" alt="天宫空间站"></div><div class="wy-cap"><h3>天宫空间站</h3><p>初始展品 · 天宫空间站</p></div></div>
+            <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/fuxing_1.jpg" alt="复兴号动车组"></div><div class="wy-cap"><h3>复兴号动车组</h3><p>初始展品 · 复兴号动车组</p></div></div>
+            <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/c919_1.jpg" alt="C919大飞机"></div><div class="wy-cap"><h3>C919 大飞机</h3><p>初始展品 · C919 大飞机</p></div></div>
+            <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/fendouzhe_1.jpg" alt="奋斗者号"></div><div class="wy-cap"><h3>奋斗者号</h3><p>初始展品 · 奋斗者号</p></div></div>
+            <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/fast_1.jpg" alt="中国天眼"></div><div class="wy-cap"><h3>中国天眼 FAST</h3><p>初始展品 · 中国天眼 FAST</p></div></div>
+            <div class="swiper-slide"><div class="swiper-zoom-container"><img src="swiper-imgs/aidu_1_1.jpg" alt="爱达·魔都号"></div><div class="wy-cap"><h3>爱达·魔都号</h3><p>初始展品 · 爱达·魔都号（AI 生成图）</p></div></div>
           </div>
           <div class="swiper-pagination" id="linjiePag5"></div>
           <div class="swiper-button-prev" id="linjiePrev5"></div>
@@ -301,12 +300,6 @@ var wySw2 = new Swiper("#wySw2", {
       slidesPerView: 1,
       loop: true,
       speed: 600,
-      // 任务三·zoom 双击缩放：slide 内图片需包在 .swiper-zoom-container 里
-      zoom: {
-        maxRatio: 3,     // 双击最大放大到 3 倍
-        minRatio: 1,     // 还原为原始大小
-        toggle: true,    // 双击在 1x 与最大倍数之间切换；放大后可按住拖动平移查看细节
-      },
       pagination: {
         el: "#wyPag2",
         clickable: true,
@@ -395,12 +388,18 @@ document.querySelectorAll('.wy-fx button').forEach(function(btn){
 // ══════════════════════════════════════════════════════════
 //  任务 5（超纲加分）：动态增删 slide —— 参考 swiper/demo/290-manipulation.html
 // ══════════════════════════════════════════════════════════
-/* linjie_sw5 —— 功能：演示五轮播实例，三屏居中 + fraction 分页器 + 前后箭头（与 290 示例同款配置） */
+/* linjie_sw5 —— 功能：演示五轮播实例，三屏居中 + fraction 分页器 + 前后箭头 + zoom 双击缩放（zoom 从演示二迁移至此） */
 var linjie_sw5 = new Swiper('#linjieSw5', {
   slidesPerView: 3,
   centeredSlides: true,
   spaceBetween: 20,
   speed: 600,
+  // 任务三·zoom 双击缩放：slide 内图片需包在 .swiper-zoom-container 里（动态新增的 slide 也要包）
+  zoom: {
+    maxRatio: 3,     // 双击最大放大到 3 倍
+    minRatio: 1,     // 还原为原始大小
+    toggle: true,    // 双击在 1x 与最大倍数之间切换；放大后可按住拖动平移查看细节
+  },
   pagination: { el: '#linjiePag5', type: 'fraction' },
   navigation: { nextEl: '#linjieNext5', prevEl: '#linjiePrev5' }
 });
@@ -420,7 +419,7 @@ var linjie_ptr = 0;
 function linjie_nextSlide(tag) {
   var linjie_item = linjie_pool[linjie_ptr % linjie_pool.length];
   linjie_ptr += 1;
-  return '<div class="swiper-slide"><img src="' + linjie_item[0] + '" alt="' + linjie_item[1] + '"><div class="wy-cap"><h3>' + linjie_item[1] + '</h3><p>' + tag + '</p></div></div>';
+  return '<div class="swiper-slide"><div class="swiper-zoom-container"><img src="' + linjie_item[0] + '" alt="' + linjie_item[1] + '"></div><div class="wy-cap"><h3>' + linjie_item[1] + '</h3><p>' + tag + '</p></div></div>';
 }
 
 /* linjie_bindAdd —— 功能：给动态增删按钮绑定事件监听；prependSlide 插到开头 / appendSlide 追加到末尾 */
