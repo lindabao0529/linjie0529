@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- 作者：林洁 ｜ 建立时间：2026-11-16 ｜ 使用模型：GLM-5.3-Flash ｜ 功能：课堂实践"4 关递进"综合汇报页——任务一事件侦探/任务二手势卡片/任务三图片查看器/任务四摇一摇+倾斜视差收进一页：每关含验收答案、坑与解决方法、iframe 实时演示与作品入口，页首附提交要求三项对照（运行截图指引/坑与解决/AI 提示词记录入口） -->
+<title>4 关递进 · 移动端任务综合</title>
+<style>
+  :root {
+    --linjie_txt: #2b2f3a;
+    --linjie_sub: #8891a3;
+    --linjie_bg: #f2f4f9;
+    --linjie_blue: #2f6fed;
+    --linjie_deep: #1f4fb3;
+    --linjie_border: #e3e8f2;
+    --linjie_warn: #b45309;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: var(--linjie_bg); color: var(--linjie_txt);
+    padding: 56px 16px 48px; max-width: 760px; margin: 0 auto; line-height: 1.8;
+  }
+  .linjie_back { position: fixed; top: 12px; left: 14px; color: var(--linjie_sub); text-decoration: none; font-size: 13px; z-index: 10; }
+  .linjie_back:hover { color: var(--linjie_blue); }
+  .linjie_head { text-align: center; margin-bottom: 18px; }
+  .linjie_head h1 { font-size: 23px; margin-bottom: 6px; }
+  .linjie_head p { font-size: 13px; color: var(--linjie_sub); }
+
+  /* ===== 提交要求三项对照 ===== */
+  .linjie_submit { background: #f0f6ff; border: 1px solid #c7d8f8; border-radius: 14px; padding: 16px 18px; margin-bottom: 26px; }
+  .linjie_submit h2 { font-size: 15px; color: var(--linjie_deep); margin-bottom: 8px; }
+  .linjie_submit li { font-size: 13px; color: #3d5a8f; margin-left: 20px; margin-bottom: 4px; }
+  .linjie_submit a { color: var(--linjie_blue); font-weight: 600; }
+
+  /* ===== 任务区块 ===== */
+  .linjie_task { background: #ffffff; border-radius: 16px; padding: 20px 18px; margin-bottom: 26px; box-shadow: 0 4px 16px rgba(43,47,58,.06); }
+  .linjie_badge { display: inline-block; font-size: 12px; padding: 4px 14px; border-radius: 999px; background: var(--linjie_blue); color: #fff; margin-bottom: 8px; letter-spacing: 1px; }
+  .linjie_task h2 { font-size: 18px; margin-bottom: 6px; }
+  .linjie_task .linjie_brief { font-size: 13px; color: var(--linjie_sub); margin-bottom: 10px; }
+  .linjie_task h3 { font-size: 14px; color: var(--linjie_deep); margin: 12px 0 6px; }
+  .linjie_task ul, .linjie_task ol { margin-left: 20px; }
+  .linjie_task li { font-size: 13px; color: #4b5568; margin-bottom: 5px; }
+  .linjie_task li b { color: var(--linjie_txt); }
+  .linjie_task code { background: #eef2ff; color: #1d4ed8; padding: 1px 6px; border-radius: 4px; font-family: Consolas, monospace; font-size: 12.5px; }
+
+  /* 验收问答：details/summary 折叠，点开看答案 */
+  details { border: 1px dashed var(--linjie_border); border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; }
+  summary { font-size: 13px; font-weight: 600; color: var(--linjie_deep); cursor: pointer; }
+  details p { font-size: 12.5px; color: #4b5568; margin: 6px 0 2px; }
+
+  /* 实时演示 iframe + 入口链接 */
+  .linjie_demo { width: 100%; height: 480px; border: 1px solid var(--linjie_border); border-radius: 12px; background: #f8f9fc; margin-top: 10px; }
+  .linjie_open { display: inline-block; margin-top: 10px; font-size: 13px; font-weight: 700; color: var(--linjie_blue); text-decoration: none; }
+  .linjie_open:hover { text-decoration: underline; }
+
+  /* ===== 运行视频预留位：录屏文件就位后把 <video> 的 src 填上即可播放 ===== */
+  .linjie_videobox { border: 2px dashed var(--linjie_border); border-radius: 12px; padding: 10px; margin-top: 12px; background: #f8f9fc; }
+  .linjie_videobox video { width: 100%; aspect-ratio: 16 / 9; display: block; border-radius: 8px; background: #14181f; }
+  .linjie_videobox p { font-size: 12px; color: var(--linjie_sub); margin-top: 8px; text-align: center; }
+  .linjie_videobox code { background: #eef2ff; color: #1d4ed8; padding: 1px 6px; border-radius: 4px; font-family: Consolas, monospace; font-size: 11.5px; }
+</style>
+</head>
+<body>
+  <a class="linjie_back" href="index.html">← 返回首页</a>
+
+  <div class="linjie_head">
+    <h1>4 关递进 · 移动端任务综合</h1>
+    <p>观察记录 → 手势实现 → 综合交互 → 设备能力+排错 ｜ 四关一个页面看完</p>
+  </div>
+
+  <!-- ===== 提交要求三项对照 ===== -->
+  <div class="linjie_submit">
+    <h2>提交要求对照（4 个任务按星级选做，本页四关全做）</h2>
+    <ol>
+      <li><b>运行截图：</b>四关均已用手机真机（华为浏览器 + HTTPS 局域网服务器）运行验证；演示区下方即各作品的实时嵌入，答辩时现场操作替代静态截图。</li>
+      <li><b>遇到的坑与解决：</b>每关下方"坑与解决"区块，共 8 个真实坑，全部来自实际开发过程。</li>
+      <li><b>AI 提示词记录：</b><a href="prompt-log.html">提示词记录全档（prompt-log.html）</a>，移动端系列任务每次提示词均已按"时间+模型+全文"追加留痕。</li>
+    </ol>
+  </div>
+
+  <!-- ===== 任务一 ===== -->
+  <section class="linjie_task">
+    <span class="linjie_badge">任务一 ★</span>
+    <h2>事件侦探：一次拖动到底发生了什么</h2>
+    <p class="linjie_brief">作品：touch-probe.html —— 5 类事件日志（毫秒时间戳+坐标+手指数）、计数格、canvas 轨迹图</p>
+    <details>
+      <summary>验收① 一次拖动里 touchmove 大约触发多少次？</summary>
+      <p>不是一次，而是按帧采样——屏幕一般 60Hz，拖动 1 秒约触发 60 次，距离越远/拖越久触发越多，浏览器不保证每像素都派发。</p>
+    </details>
+    <details>
+      <summary>验收② click 出现在 touchend 之前还是之后？</summary>
+      <p>之后。完整顺序 touchstart → touchmove（若干）→ touchend → （约 300ms 内）→ click，click 是由触摸动作"合成"出来的鼠标事件。</p>
+    </details>
+    <details>
+      <summary>验收③ 把 touchend 换成 touchcancel 会发生什么？</summary>
+      <p>正常松手时 touchcancel 永远不来，程序收不到收尾事件；两者互斥，所以必须都监听——系统来电、手势被浏览器接管时才派发 touchcancel。</p>
+    </details>
+    <h3>坑与解决</h3>
+    <ul>
+      <li><b>canvas 轨迹坐标错位：</b>canvas 内部分辨率与 CSS 尺寸不同步，画出的点偏离手指——在 linjie_setupTrail 里按 devicePixelRatio 同步设置内部分辨率。</li>
+      <li><b>日志刷屏：</b>touchmove 60Hz 疯狂刷行——限制上限 120 行并按帧合并计数。</li>
+    </ul>
+    <iframe class="linjie_demo" src="touch-probe.html" loading="lazy" title="任务一 事件侦探实时演示"></iframe>
+    <a class="linjie_open" href="touch-probe.html">全屏打开任务一 →</a>
+  </section>
+
+  <!-- ===== 任务二 ===== -->
+  <section class="linjie_task">
+    <span class="linjie_badge">任务二 ★★</span>
+    <h2>手势卡片：左右滑动切换内容</h2>
+    <p class="linjie_brief">作品：mobile-gesture.html —— 4 道菜卡、changedTouches[0] 算横向位移、阈值 40px、边界提示</p>
+    <details>
+      <summary>验收① 距离不够不切换（阈值生效）？</summary>
+      <p>横向位移 |dx| &lt; 40px 直接忽略，只在 touchend 结算一次，避免微小抖动误切。</p>
+    </details>
+    <details>
+      <summary>验收② 快速连滑不会跳两张？</summary>
+      <p>300ms 冷却：切换后写入 linjie_lockUntil 时间戳，冷却期内的新手势整体忽略；再配合"滑出→强制重绘→滑入"两阶段 0.3s 过渡。</p>
+    </details>
+    <details>
+      <summary>验收③ 手机上拖动时页面不会跟着上下滚动？</summary>
+      <p>卡片容器加 touch-action: pan-y——横向手势归 JS，纵向仍允许页面滚动，两不误。</p>
+    </details>
+    <h3>坑与解决</h3>
+    <ul>
+      <li><b>动画第二次不播：</b>两次切换间隔小于动画时长时 class 没变过、动画不重放——"移除类 → void offsetWidth 强制重绘 → 加回类"三连保证每次都播。</li>
+      <li><b>边界提示被动画盖住：</b>提示文字用独立节点单独控制显示，不参与卡片过渡。</li>
+    </ul>
+    <iframe class="linjie_demo" src="mobile-gesture.html" loading="lazy" title="任务二 手势卡片实时演示"></iframe>
+    <a class="linjie_open" href="mobile-gesture.html">全屏打开任务二 →</a>
+  </section>
+
+  <!-- ===== 任务三 ===== -->
+  <section class="linjie_task">
+    <span class="linjie_badge">任务三 ★★★</span>
+    <h2>图片查看器：双指缩放 + 双击放大 + 拖动（加做：双指旋转）</h2>
+    <p class="linjie_brief">作品：mobile-zoom.html —— 增量缩放 1~4 倍、焦点锚定、边界钳制、双击 1x↔2x、atan2 双指旋转</p>
+    <details>
+      <summary>验收① 缩放以两指中心为基准，图片不会"跳走"？</summary>
+      <p>"缩放不跳"两件套：增量缩放（本次距离/上次距离，每步只乘小比例）+ 焦点锚定公式 tx' = mx − (mx−tx)·(s1/s0)，保证手指下的图像点在缩放前后不动。</p>
+    </details>
+    <details>
+      <summary>验收② 缩放到边界有阻尼或限制？</summary>
+      <p>1~4 倍钳制 + 松手回弹：实时 clampOffset（最大平移 = 尺寸×(scale−1)/2），松手后带 0.25s 过渡吸附回合法边界。</p>
+    </details>
+    <details>
+      <summary>验收③ 1x 时不能拖出边界？</summary>
+      <p>单指拖动仅在 scale&gt;1 生效；scale=1 时最大平移量为 0，天然锁死在居中位。</p>
+    </details>
+    <details>
+      <summary>加做：双指旋转为什么不破坏"缩放不跳"？</summary>
+      <p>Math.atan2 算两指连线角，角度差累加进 rot（±180° 环绕处差值归一化防整圈闪跳）；rotate 写在 scale 之后（CSS 从右往左执行），焦点锚定公式依然精确成立。</p>
+    </details>
+    <h3>坑与解决</h3>
+    <ul>
+      <li><b>2指→1指跳变：</b>双指期间残留位移被继承——touchend 时把拖动基准重置为剩余手指当前位置，角度基准一并清空。</li>
+      <li><b>旋转绕左上角甩出屏幕：</b>transform-origin 固定 0 0（缩放公式需要）——在 rotate 前后补 ±中心点的 translate，等价于"绕图片中心转"。</li>
+    </ul>
+    <iframe class="linjie_demo" src="mobile-zoom.html" loading="lazy" title="任务三 图片查看器实时演示"></iframe>
+    <a class="linjie_open" href="mobile-zoom.html">全屏打开任务三 →</a>
+
+    <!-- 运行视频：真机录屏（swiper-imgs/video.mp4），点击播放观看操作过程 -->
+    <div class="linjie_videobox">
+      <video controls preload="metadata" src="swiper-imgs/video.mp4"></video>
+      <p>任务三运行视频 · 双指缩放+旋转真机演示</p>
+    </div>
+  </section>
+
+  <!-- ===== 任务四 ===== -->
+  <section class="linjie_task">
+    <span class="linjie_badge">任务四 ★★★★（A 摇一摇 + B 倾斜视差 两个都做）</span>
+    <h2>摇一摇彩蛋 + 倾斜视差</h2>
+    <p class="linjie_brief">作品：mobile-sensor.html —— devicemotion 阈值 18 抽菜谱（1.5s 冷却）+ 独立五层视差舞台 + 三级降级</p>
+    <details>
+      <summary>验收① 一次摇动只触发一次？</summary>
+      <p>devicemotion 可达 60Hz，一次摇动几十个超阈值事件——触发后写入 1.5s 冷却截止时间戳，冷却期内只更新读数不抽签。</p>
+    </details>
+    <details>
+      <summary>验收② 没有加速度传感器的设备不报错不白屏？</summary>
+      <p>三级分流：DeviceMotionEvent 不存在 → 直接降级；支持但 1 秒内收不到有效数据 → 探测定时器自动降级；降级显示"当前设备不支持，请用手机打开"+"点我抽一次"按钮。</p>
+    </details>
+    <details>
+      <summary>验收③ iOS 通过按钮触发权限申请？</summary>
+      <p>iOS 13+ 要求用户手势触发 requestPermission()——页面先显示"开启体感权限"按钮，授权通过才监听（同一个手势里顺带请求方向传感器权限）。</p>
+    </details>
+    <details>
+      <summary>验收④ accelerationIncludingGravity 与 acceleration 的区别？</summary>
+      <p>前者包含重力分量：手机静止平放时读数约 ±9.8（只有重力），摇动时叠加手部加速度，所以合成模长 √(x²+y²+z²) 静止≈9.8、摇动超 18 可判定；后者剔除重力，静止时接近 0，无法直接判定"有没有摇"。</p>
+    </details>
+    <h3>坑与解决（本关坑最多，3 个真实排错经历）</h3>
+    <ul>
+      <li><b>坑① 手机上摇不了（读数一直 --）：</b>局域网 HTTP 地址不是"安全上下文"，浏览器禁发传感器数据——加"环境诊断"行定位后，改用 openssl 自签证书起 HTTPS 服务器（https-server.js，8443 端口）解决；等价方案还有 chrome://flags 白名单、GitHub Pages 真 HTTPS。</li>
+      <li><b>坑② 华为浏览器摇一摇能动、视差不动：</b>它只派发 devicemotion、不派发 deviceorientation——诊断行把"加速度数据/方向数据"拆开显示定位根因，再加兜底：方向数据缺失时用 accelerationIncludingGravity 重力分量（x/9.8, y/9.8）近似倾斜角驱动视差。</li>
+      <li><b>坑③ 视差效果太弱看不出：</b>原来只在结果卡片上做 14~30px 位移——单拎成独立五层视差舞台（depth 系数 -12~58，远景反向），幅度加大后一眼可见。</li>
+    </ul>
+    <iframe class="linjie_demo" src="mobile-sensor.html" loading="lazy" title="任务四 摇一摇+视差实时演示"></iframe>
+    <a class="linjie_open" href="mobile-sensor.html">全屏打开任务四 →</a>
+
+    <!-- 运行视频：真机录屏（swiper-imgs/video(1).mp4），点击播放观看操作过程 -->
+    <div class="linjie_videobox">
+      <video controls preload="metadata" src="swiper-imgs/video(1).mp4"></video>
+      <p>任务四运行视频 · 摇一摇+倾斜视差真机演示</p>
+    </div>
+  </section>
+
+  <footer style="text-align:center;color:var(--linjie_sub);font-size:12.5px;margin-top:8px;">
+    观察记录 → 手势实现 → 综合交互 → 设备能力+排错 ｜ 林洁 · 高级网页设计课堂实践
+  </footer>
+</body>
+</html>

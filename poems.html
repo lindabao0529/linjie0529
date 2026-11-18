@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- 作者：林洁 ｜ 建立时间：2026-11-12 11:02 ｜ 使用模型：GLM-5.3-Flash ｜ 功能：古诗卡片页——上图下文结构，通过本地 Node 服务器（db/server.js，端口 3004）读取 db/db.json 中 poems 的图片、标题与内容并渲染 -->
+<title>古诗卡片 · 上图下文</title>
+<style>
+  :root {
+    --linjie_primary: #2f6fed;
+    --linjie_deep: #1d4ed8;
+    --linjie_txt: #33415e;
+    --linjie_border: #e3e9f3;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: linear-gradient(180deg, #f5f8ff 0%, #eef3fc 100%);
+    min-height: 100vh;
+    color: var(--linjie_txt);
+    padding: 30px 16px 50px; 
+  }
+  .linjie_back { display: inline-block; margin-bottom: 16px; color: #66738f; text-decoration: none; font-size: 13px; }
+  .linjie_back:hover { color: var(--linjie_primary); text-decoration: underline; }
+  .linjie_wrap { max-width: 1080px; margin: 0 auto; }
+  .linjie_head { text-align: center; margin-bottom: 26px; }
+  .linjie_head h1 { font-size: 26px; color: var(--linjie_deep); margin-bottom: 8px; }
+  .linjie_head p { font-size: 13.5px; color: #8a97b0; }
+  .linjie_head code { background: #eaf1fd; padding: 1px 6px; border-radius: 4px; font-family: Consolas, monospace; font-size: 12.5px; color: #0d3d8c; }
+
+  /* ===== 上图下文卡片网格 ===== */
+  .linjie_grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 22px;
+  }
+  .linjie_card {
+    background: #ffffff;
+    border: 1px solid var(--linjie_border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(47, 111, 237, .08);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .linjie_card:hover { transform: translateY(-4px); box-shadow: 0 14px 32px rgba(47, 111, 237, .14); }
+  /* 上图：固定高度，填充裁剪 */
+  .linjie_pic { width: 100%; height: 170px; object-fit: cover; display: block; background: #eaf1fd; }
+  /* 下文：标题 + 内容 */
+  .linjie_body { padding: 14px 16px 16px; }
+  .linjie_body h3 { font-size: 17px; color: var(--linjie_deep); margin-bottom: 4px; }
+  .linjie_author { font-size: 12px; color: #8a97b0; margin-bottom: 8px; }
+  .linjie_body p { font-size: 13.5px; line-height: 1.8; color: #5a6b8c; }
+
+  /* ===== 作者筛选条（数据来自 /api/authors） ===== */
+  .linjie_authors { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 24px; }
+  .linjie_chip {
+    padding: 5px 14px; border-radius: 999px; font-size: 13px; cursor: pointer;
+    background: #ffffff; border: 1px solid var(--linjie_border); color: #5a6b8c;
+    transition: all .15s;
+  }
+  .linjie_chip:hover { border-color: var(--linjie_primary); color: var(--linjie_primary); }
+  .linjie_chip.linjie_chip-on { background: var(--linjie_primary); border-color: var(--linjie_primary); color: #ffffff; }
+
+  /* ===== 搜索 + 排序控件行 ===== */
+  .linjie_controls { display: flex; gap: 12px; max-width: 640px; margin: 0 auto 24px; }
+  .linjie_search {
+    flex: 1; padding: 10px 16px; font-size: 14px; color: var(--linjie_txt);
+    border: 1px solid var(--linjie_border); border-radius: 10px; outline: none;
+    background: #ffffff; transition: border-color .15s, box-shadow .15s;
+  }
+  .linjie_search:focus { border-color: var(--linjie_primary); box-shadow: 0 0 0 3px rgba(47, 111, 237, .12); }
+  .linjie_sort-btn {
+    padding: 10px 18px; font-size: 13.5px; cursor: pointer; white-space: nowrap;
+    border: 1px solid var(--linjie_border); border-radius: 10px; background: #ffffff; color: var(--linjie_deep);
+    transition: all .15s;
+  }
+  .linjie_sort-btn:hover { border-color: var(--linjie_primary); background: #eaf1fd; }
+  .linjie_sort-btn.linjie_sort-on { background: var(--linjie_primary); border-color: var(--linjie_primary); color: #ffffff; }
+  /* 搜索/筛选后无匹配时的占位提示 */
+  .linjie_empty { text-align: center; color: #8a97b0; font-size: 14px; padding: 40px 0; display: none; }
+
+  /* ===== 加载 / 错误状态 ===== */
+  .linjie_state {
+    max-width: 560px; margin: 40px auto; padding: 18px 22px;
+    border-radius: 12px; font-size: 13.5px; line-height: 1.9; text-align: center;
+  }
+  .linjie_state.linjie_err { background: #fff7e6; border: 1px solid #f0cf8a; color: #9a6b00; }
+  .linjie_state.linjie_err code { background: #f7ecd2; padding: 1px 6px; border-radius: 4px; font-family: Consolas, monospace; }
+</style>
+</head>
+<body>
+  <div class="linjie_wrap">
+    <a class="linjie_back" href="index.html">← 返回首页</a>
+    <div class="linjie_head">
+      <h1>古诗卡片</h1>
+      <p>并发请求 <code>/api/poems</code> 与 <code>/api/authors</code>（由 <code>db/server.js</code> 提供，端口 3004，读取 <code>db/db.json</code>）</p>
+    </div>
+    <div class="linjie_authors" id="linjieAuthors"></div>
+    <div class="linjie_controls">
+      <input class="linjie_search" id="linjieSearch" type="text" placeholder="输入关键字，按标题或内容过滤诗词…" aria-label="搜索诗词">
+      <button class="linjie_sort-btn" id="linjieSortBtn" type="button">按标题长度排序 ↑</button>
+    </div>
+    <div class="linjie_empty" id="linjieEmpty">没有匹配的诗词，换个关键字试试～</div>
+    <div class="linjie_grid" id="linjieGrid"></div>
+    <div class="linjie_state linjie_err" id="linjieErr" style="display:none"></div>
+  </div>
+
+  <script>
+    /* ===== 视图状态：全部数据缓存 + 当前作者 + 关键字 + 排序方向，任一变化只需 linjie_applyView() 重算，不用重新 fetch ===== */
+    var linjie_allPoems = [];   // 服务器返回的全部诗词
+    var linjie_curAuthor = '';  // 当前选中作者（空串 = 全部）
+    var linjie_keyword = '';    // 搜索关键字
+    var linjie_sortDir = 0;     // 0 = 原始顺序，1 = 标题长度升序，-1 = 降序
+
+    /* linjie_applyView —— 功能：统一视图管线——按"作者 + 关键字"过滤缓存数据，再按标题长度排序，最后渲染卡片并处理空态 */
+    function linjie_applyView() {
+      var linjie_list = linjie_allPoems.filter(function (linjie_item) {
+        // 作者条件：空串表示"全部"
+        var linjie_okAuthor = linjie_curAuthor === '' || linjie_item.author === linjie_curAuthor;
+        // 关键字条件：标题或内容包含即可（不区分大小写）
+        var linjie_k = linjie_keyword.toLowerCase();
+        var linjie_okKeyword = linjie_k === '' ||
+          (linjie_item.title || '').toLowerCase().indexOf(linjie_k) !== -1 ||
+          (linjie_item.content || '').toLowerCase().indexOf(linjie_k) !== -1;
+        return linjie_okAuthor && linjie_okKeyword;
+      });
+      if (linjie_sortDir !== 0) {
+        // slice 复制后再排序，不污染 linjie_allPoems 原始顺序；标题等长时保持原相对顺序（sort 稳定）
+        linjie_list = linjie_list.slice().sort(function (linjie_a, linjie_b) {
+          return ((linjie_a.title || '').length - (linjie_b.title || '').length) * linjie_sortDir;
+        });
+      }
+      document.getElementById('linjieEmpty').style.display = linjie_list.length === 0 ? 'block' : 'none';
+      linjie_renderCards(linjie_list);
+    }
+
+    /* linjie_picOf —— 功能：兼容取图片字段——新数据用 img，旧数据用 pic，保证每首诗都能显示图片 */
+    function linjie_picOf(linjie_item) { return linjie_item.img || linjie_item.pic || ''; }
+
+    /* linjie_imgErr —— 功能：单张图片加载失败时的兜底——移除 src 露出占位底色，避免裂图图标 */
+    function linjie_imgErr(linjie_el) { linjie_el.removeAttribute('src'); }
+
+    /* linjie_renderCards —— 功能：把 poems 数组渲染为"上图下文"卡片——图片在上，作者、标题与诗句在下 */
+    function linjie_renderCards(linjie_list) {
+      var linjie_html = '';
+      linjie_list.forEach(function (linjie_item) {
+        linjie_html += '<article class="linjie_card">' +
+          '<img class="linjie_pic" src="' + linjie_picOf(linjie_item) + '" alt="' + linjie_item.title + '" onerror="linjie_imgErr(this)">' +
+          '<div class="linjie_body"><h3>' + linjie_item.title + '</h3>' +
+          '<div class="linjie_author">' + (linjie_item.author || '佚名') + '</div>' +
+          '<p>' + linjie_item.content + '</p></div>' +
+          '</article>';
+      });
+      document.getElementById('linjieGrid').innerHTML = linjie_html;
+    }
+
+    /* linjie_renderAuthors —— 功能：渲染作者筛选条——点击作者名只显示该作者的诗，点"全部"恢复（排他高亮） */
+    function linjie_renderAuthors(linjie_authors) {
+      var linjie_bar = document.getElementById('linjieAuthors');
+      var linjie_html = '<span class="linjie_chip linjie_chip-on" data-author="">全部</span>';
+      linjie_authors.forEach(function (linjie_name) {
+        linjie_html += '<span class="linjie_chip" data-author="' + linjie_name + '">' + linjie_name + '</span>';
+      });
+      linjie_bar.innerHTML = linjie_html;
+      // 事件委托：点击任一作者圆片时统一处理筛选与高亮
+      linjie_bar.addEventListener('click', function (linjie_e) {
+        var linjie_name = linjie_e.target.getAttribute('data-author');
+        if (linjie_name === null) { return; }
+        // 排他思想：先清除所有圆片选中态，再设置当前圆片
+        linjie_bar.querySelectorAll('.linjie_chip').forEach(function (linjie_chip) {
+          linjie_chip.classList.remove('linjie_chip-on');
+        });
+        linjie_e.target.classList.add('linjie_chip-on');
+        // 更新作者状态后走统一视图管线（与搜索、排序叠加生效）
+        linjie_curAuthor = linjie_name;
+        linjie_applyView();
+      });
+    }
+
+    /* linjie_bindControls —— 功能：绑定搜索框与排序按钮——输入即过滤（数据已缓存，不重新请求），按钮在升/降序间切换 */
+    function linjie_bindControls() {
+      var linjie_searchEl = document.getElementById('linjieSearch');
+      var linjie_sortBtn = document.getElementById('linjieSortBtn');
+      // 输入即过滤：数据量小，无需防抖
+      linjie_searchEl.addEventListener('input', function () {
+        linjie_keyword = this.value.trim();
+        linjie_applyView();
+      });
+      // 排序按钮：首次点击升序，再点降序，交替切换；按钮文字与高亮同步更新
+      linjie_sortBtn.addEventListener('click', function () {
+        linjie_sortDir = linjie_sortDir === 1 ? -1 : 1;
+        this.textContent = '按标题长度排序 ' + (linjie_sortDir === 1 ? '↑' : '↓');
+        this.classList.toggle('linjie_sort-on', true);
+        linjie_applyView();
+      });
+    }
+
+    /* 页面加载后用 Promise.all 并发请求诗词与作者两个接口，互不阻塞、都返回后再渲染；
+       catch 分支：任一接口失败（含服务器未启动）都会显示提示条（而不是白屏） */
+    (function () {
+      Promise.all([
+        fetch('http://localhost:3004/api/poems')
+          .then(function (linjie_res) {
+            if (!linjie_res.ok) { throw new Error('poems HTTP ' + linjie_res.status); }
+            return linjie_res.json();
+          }),
+        fetch('http://localhost:3004/api/authors')
+          .then(function (linjie_res) {
+            if (!linjie_res.ok) { throw new Error('authors HTTP ' + linjie_res.status); }
+            return linjie_res.json();
+          })
+      ]).then(function (linjie_results) {
+        // 数据只在此时请求一次，之后搜索/排序/筛选全部基于缓存的 linjie_allPoems 计算
+        linjie_allPoems = linjie_results[0].poems || [];
+        linjie_bindControls();
+        linjie_renderAuthors(linjie_results[1].authors || []);
+        linjie_applyView();
+      }).catch(function (linjie_err) {
+        var linjie_errBox = document.getElementById('linjieErr');
+        linjie_errBox.style.display = 'block';
+        linjie_errBox.innerHTML = '未能连接数据服务器（' + linjie_err.message + '）。请先在本项目根目录执行 <code>node db/server.js</code> 启动服务（端口 3004），再刷新本页。';
+      });
+    })();
+  </script>
+</body>
+</html>

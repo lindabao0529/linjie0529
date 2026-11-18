@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<!-- 作者：林洁 ｜ 建立时间：2026-11-16 ｜ 使用模型：GLM-5.3-Flash ｜ 功能：移动端手势翻页卡片——touchstart/touchend 监听左右滑切换美食卡片（阈值40px、0.3s过渡、300ms冷却防连滑、边界提示） -->
+<title>移动端手势 · 美食卡片</title>
+<style>
+  :root {
+    --linjie_txt: #2b2f3a;
+    --linjie_sub: #8891a3;
+    --linjie_page-bg: #f2f4f9;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: var(--linjie_page-bg);
+    color: var(--linjie_txt);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 20px 18px;
+  }
+  .linjie_back { position: fixed; top: 12px; left: 14px; color: var(--linjie_sub); text-decoration: none; font-size: 13px; }
+  .linjie_back:hover { color: #2f6fed; }
+  .linjie_head { text-align: center; margin-bottom: 26px; }
+  .linjie_head h1 { font-size: 21px; margin-bottom: 6px; }
+  .linjie_head p { font-size: 13px; color: var(--linjie_sub); }
+
+  /* ===== 卡片容器：touch-action: pan-y 只放行纵向滚动，横向手势全部归 JS 处理 ===== */
+  .linjie_stage {
+    width: 100%; max-width: 340px;
+    touch-action: pan-y;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .linjie_card {
+    border-radius: 22px;
+    padding: 34px 26px 30px;
+    min-height: 380px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    color: #ffffff;
+    box-shadow: 0 16px 40px rgba(43, 47, 58, .18);
+    cursor: grab;
+    user-select: none;
+    /* 切换动画：0.3s 过渡由 JS 动态加 transition，这里只放默认态 */
+    will-change: transform, opacity;
+  }
+  .linjie_dish-tag { align-self: flex-start; font-size: 12px; padding: 4px 12px; border-radius: 999px; background: rgba(255,255,255,.28); margin-bottom: 12px; backdrop-filter: blur(2px); }
+  .linjie_dish-name { font-size: 28px; font-weight: bold; letter-spacing: 1px; margin-bottom: 10px; text-shadow: 0 2px 6px rgba(0,0,0,.15); }
+  .linjie_dish-desc { font-size: 14px; line-height: 1.9; color: rgba(255,255,255,.92); }
+
+  /* ===== 底部页码 ===== */
+  .linjie_indicator { margin-top: 22px; font-size: 14px; color: var(--linjie_sub); font-variant-numeric: tabular-nums; }
+
+  /* ===== 边界提示 toast：淡入淡出由 .linjie_show 控制 ===== */
+  .linjie_toast {
+    margin-top: 14px; padding: 7px 18px; border-radius: 999px; font-size: 12.5px;
+    background: #2b2f3a; color: #ffffff; opacity: 0; transition: opacity .25s; pointer-events: none;
+  }
+  .linjie_toast.linjie_show { opacity: .92; }
+</style>
+</head>
+<body>
+  <a class="linjie_back" href="index.html">← 返回首页</a>
+
+  <div class="linjie_head">
+    <h1>滑动切换美食</h1>
+    <p>左滑下一张 · 右滑上一张（横向位移超过 40px 才触发）</p>
+  </div>
+
+  <div class="linjie_stage" id="linjieStage">
+    <div class="linjie_card" id="linjieCard">
+      <span class="linjie_dish-tag" id="linjieTag"></span>
+      <h2 class="linjie_dish-name" id="linjieName"></h2>
+      <p class="linjie_dish-desc" id="linjieDesc"></p>
+    </div>
+  </div>
+
+  <div class="linjie_indicator" id="linjieIndicator">第 1/4 张</div>
+  <div class="linjie_toast" id="linjieToast"></div>
+
+  <script>
+    /* linjie_dishes —— 功能：4 道菜的数据源——菜名、简介、专属渐变背景 */
+    var linjie_dishes = [
+      { name: '宫保鸡丁', desc: '川菜经典，鸡丁滑嫩、花生酥脆，荔枝味的小酸小甜里藏着糊辣香，一口下去层次分明。', grad: 'linear-gradient(135deg, #ff6a3d 0%, #d43a2f 100%)' },
+      { name: '麻婆豆腐', desc: '麻、辣、烫、香、酥、嫩、鲜、活八字真言，红油豆腐配花椒面的经典组合，下饭界天花板。', grad: 'linear-gradient(135deg, #b06ab3 0%, #6a3093 100%)' },
+      { name: '糖醋里脊', desc: '外皮金黄酥脆，里脊细嫩多汁，糖醋汁酸甜适口挂得恰到好处，老少通吃的宴席硬菜。', grad: 'linear-gradient(135deg, #ffb347 0%, #ff6f91 100%)' },
+      { name: '东坡肉', desc: '慢火细炖两小时以上，肥而不腻、酥而不碎，酱色红亮入口即化，一块能下一整碗米饭。', grad: 'linear-gradient(135deg, #2f80ed 0%, #1d4ed8 100%)' }
+    ];
+
+    /* ===== 页面状态 ===== */
+    var linjie_index = 0;           // 当前卡片下标（0 起）
+    var linjie_lockUntil = 0;       // 冷却截止时间戳：动画期间忽略新手势，防一次连滑跳两张
+    var linjie_toastTimer = null;   // 边界提示自动隐藏的定时器
+
+    /* linjie_renderCard —— 功能：把 linjie_dishes[linjie_index] 的菜名、简介、渐变背景与页码渲染到卡片上 */
+    function linjie_renderCard() {
+      var linjie_dish = linjie_dishes[linjie_index];
+      document.getElementById('linjieCard').style.background = linjie_dish.grad;
+      document.getElementById('linjieTag').textContent = '招牌第' + (linjie_index + 1) + '道';
+      document.getElementById('linjieName').textContent = linjie_dish.name;
+      document.getElementById('linjieDesc').textContent = linjie_dish.desc;
+      document.getElementById('linjieIndicator').textContent = '第 ' + (linjie_index + 1) + '/' + linjie_dishes.length + ' 张';
+    }
+
+    /* linjie_showToast —— 功能：显示边界提示文字（1.2 秒后自动淡出，重复触发时先清旧定时器） */
+    function linjie_showToast(linjie_text) {
+      var linjie_el = document.getElementById('linjieToast');
+      linjie_el.textContent = linjie_text;
+      linjie_el.classList.add('linjie_show');
+      if (linjie_toastTimer) { clearTimeout(linjie_toastTimer); }
+      linjie_toastTimer = setTimeout(function () {
+        linjie_el.classList.remove('linjie_show');
+      }, 1200);
+    }
+
+    /* linjie_switchCard —— 功能：带动画的卡片切换——0.3s 滑出淡出 → 换内容 → 从另一侧滑入；
+       dir 为 -1（下一张）/ 1（上一张）；切换期间加锁 300ms 冷却，防止快速连滑一次跳两张 */
+    function linjie_switchCard(linjie_dir) {
+      var linjie_card = document.getElementById('linjieCard');
+      // 冷却检查：上一次切换动画未结束时直接忽略本次手势
+      var linjie_now = Date.now();
+      if (linjie_now < linjie_lockUntil) { return; }
+      // 边界检查：到头/到尾时给提示文字，不切换
+      var linjie_next = linjie_index + linjie_dir;
+      if (linjie_next < 0) { linjie_showToast('已经是第一张'); return; }
+      if (linjie_next >= linjie_dishes.length) { linjie_showToast('已经是最后一张'); return; }
+
+      linjie_lockUntil = linjie_now + 300; // 开启 300ms 冷却（与动画时长一致）
+      // 第一阶段：卡片沿滑动方向滑出并淡出
+      linjie_card.style.transition = 'transform .3s ease, opacity .3s ease';
+      linjie_card.style.transform = 'translateX(' + (-linjie_dir * 70) + 'px)';
+      linjie_card.style.opacity = '0';
+      // 第二阶段：动画结束后更新内容，无过渡瞬间摆到进场侧，再恢复过渡滑回原位
+      setTimeout(function () {
+        linjie_index = linjie_next;
+        linjie_renderCard();
+        linjie_card.style.transition = 'none';
+        linjie_card.style.transform = 'translateX(' + (linjie_dir * 70) + 'px)';
+        // 强制浏览器重绘，保证下一帧的过渡从新位置生效
+        void linjie_card.offsetWidth;
+        linjie_card.style.transition = 'transform .3s ease, opacity .3s ease';
+        linjie_card.style.transform = 'translateX(0)';
+        linjie_card.style.opacity = '1';
+      }, 300);
+    }
+
+    /* linjie_bindTouch —— 功能：绑定 touchstart/touchend 手势监听——
+       用 changedTouches[0] 取结束点坐标，横向位移绝对值 > 40px 且大于纵向位移才判定为滑动；
+       左滑（dx<0）下一张，右滑（dx>0）上一张 */
+    function linjie_bindTouch() {
+      var linjie_stage = document.getElementById('linjieStage');
+      var linjie_startX = 0, linjie_startY = 0;
+      linjie_stage.addEventListener('touchstart', function (linjie_e) {
+        // 记录按下起点（取第一根手指）
+        linjie_startX = linjie_e.changedTouches[0].clientX;
+        linjie_startY = linjie_e.changedTouches[0].clientY;
+      });
+      linjie_stage.addEventListener('touchend', function (linjie_e) {
+        // 松开时从 changedTouches[0] 拿结束点，计算横向/纵向位移
+        var linjie_dx = linjie_e.changedTouches[0].clientX - linjie_startX;
+        var linjie_dy = linjie_e.changedTouches[0].clientY - linjie_startY;
+        // 阈值 40px，且横向位移必须明显大于纵向，避免和页面上下滚动冲突
+        if (Math.abs(linjie_dx) < 40 || Math.abs(linjie_dx) <= Math.abs(linjie_dy)) { return; }
+        // 冷却期内不响应（防快速连滑一次跳两张）
+        if (Date.now() < linjie_lockUntil) { return; }
+        if (linjie_dx < 0) { linjie_switchCard(-1); } else { linjie_switchCard(1); }
+      });
+    }
+
+    // 初始化：先渲染第一张，再绑手势
+    linjie_renderCard();
+    linjie_bindTouch();
+  </script>
+</body>
+</html>

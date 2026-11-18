@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<!-- 作者：林洁 ｜ 建立时间：2026-11-16 ｜ 使用模型：GLM-5.3-Flash ｜ 功能：摇一摇抽菜谱+独立分层视差——devicemotion 合成加速度（阈值18判定摇动、1.5s冷却防重复触发）抽菜谱；deviceorientation beta/gamma 驱动独立的"分层视差舞台"（5 层深度、近景动得多远景反向）；无传感器/iOS未授权/无数据时降级为"点我抽一次"按钮 + 鼠标模拟视差 -->
+<title>摇一摇 · 抽今日菜谱</title>
+<style>
+  :root {
+    --linjie_txt: #2b2f3a;
+    --linjie_sub: #8891a3;
+    --linjie_bg: #f2f4f9;
+    --linjie_blue: #2f6fed;
+    --linjie_border: #e3e8f2;
+    --linjie_warn: #b45309;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: var(--linjie_bg); color: var(--linjie_txt);
+    padding: 56px 16px 48px; max-width: 720px; margin: 0 auto;
+  }
+  .linjie_back { position: fixed; top: 12px; left: 14px; color: var(--linjie_sub); text-decoration: none; font-size: 13px; z-index: 10; }
+  .linjie_back:hover { color: var(--linjie_blue); }
+  .linjie_head { text-align: center; margin-bottom: 20px; }
+  .linjie_head h1 { font-size: 23px; margin-bottom: 6px; }
+  .linjie_head p { font-size: 13px; color: var(--linjie_sub); }
+
+  /* ===== 状态提示区：正常引导 / iOS 权限按钮 / 降级文案，随检测切换 ===== */
+  .linjie_hint { text-align: center; font-size: 15px; margin-bottom: 20px; min-height: 24px; }
+  .linjie_hint.linjie_warn { color: var(--linjie_warn); font-size: 13.5px; }
+  .linjie_btn {
+    padding: 9px 24px; font-size: 14px; border-radius: 10px; cursor: pointer; margin-left: 8px;
+    border: 1px solid var(--linjie_blue); background: var(--linjie_blue); color: #ffffff;
+  }
+  .linjie_btn:hover { opacity: .9; }
+  .linjie_btn.linjie_ghost { background: #ffffff; color: var(--linjie_blue); }
+
+  /* ===== 结果卡片：弹出动画由 .linjie_pop 触发 ===== */
+  .linjie_result {
+    width: min(88vw, 360px); margin: 0 auto; border-radius: 20px; padding: 30px 24px 26px;
+    background: linear-gradient(135deg, #ff8a5c 0%, #d43a2f 100%);
+    color: #ffffff; text-align: center;
+    box-shadow: 0 16px 40px rgba(43, 47, 58, .18);
+  }
+  .linjie_result .linjie_tag { display: inline-block; font-size: 12px; padding: 4px 14px; border-radius: 999px; background: rgba(255,255,255,.26); margin-bottom: 14px; }
+  .linjie_result .linjie_emoji { font-size: 62px; line-height: 1.1; margin-bottom: 8px; }
+  .linjie_result .linjie_name { font-size: 26px; font-weight: bold; letter-spacing: 2px; margin-bottom: 10px; text-shadow: 0 2px 6px rgba(0,0,0,.15); }
+  .linjie_result .linjie_desc { font-size: 13.5px; line-height: 1.9; color: rgba(255,255,255,.92); }
+  @keyframes linjie_pop {
+    0%   { transform: scale(.5) rotate(-6deg);  opacity: 0; }
+    60%  { transform: scale(1.08) rotate(2deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+  .linjie_result.linjie_pop { animation: linjie_pop .45s ease; }
+
+  /* ===== 独立视差舞台：纯 CSS 渐变分层场景，倾斜手机/移动鼠标时各层按深度差位移 ===== */
+  .linjie_stage {
+    position: relative; width: min(88vw, 360px); height: 240px; margin: 26px auto 0;
+    border-radius: 20px; overflow: hidden;            /* 溢出裁掉，层位移时不出框 */
+    background: linear-gradient(180deg, #2c3e6b 0%, #6a6fb3 45%, #f0956b 75%, #d43a2f 100%); /* 天空到暮色底 */
+    box-shadow: 0 16px 40px rgba(43, 47, 58, .18);
+  }
+  /* 每层绝对定位铺满舞台，will-change 提升合成层，transform 走 translate3d 不引起重排 */
+  .linjie_layer { position: absolute; inset: 0; will-change: transform; }
+  /* 最远景：太阳与云（depth 为负 → 与近景反向移动，纵深感最强） */
+  .linjie_px-sun { position: absolute; right: 52px; top: 34px; width: 54px; height: 54px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ffe9a8, #ffb347); box-shadow: 0 0 26px rgba(255, 210, 120, .8); }
+  .linjie_px-cloud { position: absolute; border-radius: 999px; background: rgba(255, 255, 255, .55); filter: blur(1px); }
+  .linjie_px-cloud.linjie_c1 { left: 46px; top: 58px; width: 84px; height: 22px; }
+  .linjie_px-cloud.linjie_c2 { right: 30px; top: 96px; width: 64px; height: 16px; }
+  /* 远山（depth 小 → 移动少）：深紫剪影 */
+  .linjie_px-far { top: auto; bottom: -6px; height: 118px; background: #4a3d7d;
+    clip-path: polygon(0 62%, 12% 34%, 26% 58%, 40% 20%, 55% 55%, 68% 30%, 82% 60%, 100% 38%, 100% 100%, 0 100%); }
+  /* 近山（depth 中）：暖色剪影 */
+  .linjie_px-mid { top: auto; bottom: -10px; height: 96px; background: #6e3a5f;
+    clip-path: polygon(0 50%, 15% 74%, 30% 34%, 48% 68%, 63% 28%, 78% 62%, 90% 42%, 100% 58%, 100% 100%, 0 100%); }
+  /* 前景丘陵（depth 大 → 移动最多）：暗红剪影压底 */
+  .linjie_px-near { top: auto; bottom: -14px; height: 74px; background: #3a1f33;
+    clip-path: polygon(0 58%, 18% 30%, 36% 62%, 58% 24%, 74% 58%, 88% 36%, 100% 54%, 100% 100%, 0 100%); }
+  /* 浮动标题：景深最大，随倾斜飘动最明显 */
+  .linjie_px-title { position: absolute; left: 0; right: 0; top: 118px; text-align: center; color: rgba(255,255,255,.92); font-size: 15px; letter-spacing: 4px; text-shadow: 0 2px 8px rgba(0,0,0,.35); }
+  .linjie_stage-cap { width: min(88vw, 360px); margin: 10px auto 0; text-align: center; font-size: 12.5px; color: var(--linjie_sub); }
+
+  /* ===== 加速度实时读数：答辩演示用，直观显示阈值判定依据 ===== */
+  .linjie_meter { margin-top: 18px; text-align: center; font-size: 12.5px; color: var(--linjie_sub); font-variant-numeric: tabular-nums; }
+  .linjie_meter b { color: var(--linjie_blue); font-size: 15px; }
+  /* ===== 环境诊断：显示降级触发的真实原因（安全上下文/API 存在性/是否收到数据） ===== */
+  .linjie_diag { margin-top: 6px; text-align: center; font-size: 11.5px; color: #a6aec0; }
+
+  /* ===== 第 6 项：降级说明 ===== */
+  .linjie_notes { background: #ffffff; border-radius: 16px; padding: 20px 18px; margin-top: 26px; box-shadow: 0 4px 16px rgba(43,47,58,.06); }
+  .linjie_notes h2 { font-size: 16px; margin-bottom: 12px; }
+  .linjie_notes li { font-size: 13px; color: #4b5568; line-height: 2; margin-left: 20px; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+  <a class="linjie_back" href="index.html">← 返回首页</a>
+
+  <div class="linjie_head">
+    <h1>摇一摇 · 抽今日菜谱</h1>
+    <p>devicemotion 传感器实践 ｜ 阈值 18 ｜ 冷却 1.5s</p>
+  </div>
+
+  <div class="linjie_hint" id="linjieHint">摇一摇手机，抽今日菜谱</div>
+
+  <div class="linjie_result" id="linjieResult">
+    <span class="linjie_tag">今日菜谱 · 待抽取</span>
+    <div class="linjie_emoji">🍤</div>
+    <div class="linjie_name">摇一摇见分晓</div>
+    <div class="linjie_desc">拿起手机用力摇两下，今晚吃什么由命运决定</div>
+  </div>
+
+  <!-- ===== 独立视差舞台：与摇一摇解耦，data-linjie-depth 是该层随倾斜位移的系数 ===== -->
+  <div class="linjie_stage" id="linjieStage" aria-label="倾斜视差舞台">
+    <div class="linjie_layer" data-linjie-depth="-12">
+      <div class="linjie_px-sun"></div>
+      <div class="linjie_px-cloud linjie_c1"></div>
+      <div class="linjie_px-cloud linjie_c2"></div>
+    </div>
+    <div class="linjie_layer linjie_px-far" data-linjie-depth="10"></div>
+    <div class="linjie_layer linjie_px-mid" data-linjie-depth="24"></div>
+    <div class="linjie_layer linjie_px-near" data-linjie-depth="42"></div>
+    <div class="linjie_layer linjie_px-title" data-linjie-depth="58">暮 色 视 差 舞 台</div>
+  </div>
+  <div class="linjie_stage-cap">分层视差舞台：倾斜手机（电脑上移动鼠标）看前后景按深度差滑动——远景反向、近景动得多</div>
+
+  <div class="linjie_meter">合成加速度：<b id="linjieMeter">--</b> m/s²（静止约 9.8，超过 18 判定为摇动）</div>
+  <div class="linjie_diag" id="linjieDiag"></div>
+
+  <div class="linjie_notes">
+    <h2>为什么必须做降级？</h2>
+    <ul>
+      <li><b>设备差异：</b>devicemotion 依赖加速度计传感器，台式机/笔记本大多没有，事件永远不会触发，页面不能"死"在黑盒里。</li>
+      <li><b>iOS 权限：</b>iOS 13+ 要求必须由用户手势触发 requestPermission() 授权，用户拒绝或没点授权按钮就拿不到任何数据。</li>
+      <li><b>环境限制：</b>页面必须在 HTTPS 安全上下文下部分浏览器才开放传感器；隐私模式或系统设置也可能直接关闭运动传感器。</li>
+      <li><b>开发调试：</b>DevTools 设备模拟只模拟触屏与视口，不模拟加速度，电脑上根本摇不出来——没有降级按钮就无法演示验收。</li>
+      <li><b>视差同理：</b>倾斜视差用的 deviceorientation 也依赖方向传感器，桌面没有——所以无传感器环境退化为鼠标位置模拟倾斜，保证任何设备上都能看到视差效果。</li>
+      <li><b>结论：</b>"检测不到事件或没有数据"不代表用户不想用，提供"点我抽一次"按钮让核心功能在任何设备都可用，传感器只是锦上添花的加速入口。</li>
+    </ul>
+  </div>
+
+  <script>
+    /* linjie_dishes —— 功能：菜谱数据源——8 道菜（emoji、菜名、一句话简介），摇一摇随机抽取 */
+    var linjie_dishes = [
+      { emoji: '🍖', name: '红烧肉', desc: '慢火炖足两小时，肥而不腻入口即化，酱色红亮下饭神器。' },
+      { emoji: '🥜', name: '宫保鸡丁', desc: '糊辣荔枝味，鸡丁滑嫩花生酥脆，川菜馆点单率之王。' },
+      { emoji: '🐟', name: '清蒸鲈鱼', desc: '大火足汽八分钟，淋热油激出葱香，鲜嫩得不需挑刺。' },
+      { emoji: '🌶️', name: '麻婆豆腐', desc: '麻辣烫香酥嫩鲜活八字真言，红油豆腐配花椒面。' },
+      { emoji: '🍅', name: '番茄牛腩', desc: '牛腩炖到筷子一夹就断，番茄熬进汤里，酸甜浓开胃。' },
+      { emoji: '🍗', name: '可乐鸡翅', desc: '甜咸口新手零失败，收汁上色后亮得像打了糖衣。' },
+      { emoji: '🥦', name: '蒜蓉西兰花', desc: '大火快炒三十秒，脆嫩绿得发亮，蒜香是灵魂。' },
+      { emoji: '🍲', name: '冬瓜排骨汤', desc: '小火慢煨一小时，汤清味鲜，夏日解腻首选。' }
+    ];
+
+    var linjie_cooldownUntil = 0; // 冷却截止时间戳：触发一次后 1.5 秒内不再判定，防一次摇动重复抽
+    var linjie_sensorOk = false;  // 是否收到过有效传感器数据（探测定时器据此决定是否降级）
+    var linjie_orientOk = false;  // 是否收到过 deviceorientation 有效角度数据（false 时用 devicemotion 重力分量兜底驱动视差）
+    var linjie_tilt = { gx: 0, gy: 0 }; // 视差目标倾斜量（gx 左右 / gy 上下，归一化 -1~1）
+    var linjie_cur = { x: 0, y: 0 };    // 当前渲染倾斜量（逐帧缓动靠近目标，避免传感器抖动直接怼到画面上）
+    var linjie_mouseBound = false;      // 鼠标模拟倾斜是否已绑定（防重复绑定）
+
+    /* linjie_draw —— 功能：随机抽取一道菜渲染到结果卡片，并重触发弹出动画（先移除类 → 强制重绘 → 再加回） */
+    function linjie_draw() {
+      var linjie_dish = linjie_dishes[Math.floor(Math.random() * linjie_dishes.length)];
+      var linjie_card = document.getElementById('linjieResult');
+      linjie_card.querySelector('.linjie_tag').textContent = '今日菜谱 · 已抽出';
+      linjie_card.querySelector('.linjie_emoji').textContent = linjie_dish.emoji;
+      linjie_card.querySelector('.linjie_name').textContent = linjie_dish.name;
+      linjie_card.querySelector('.linjie_desc').textContent = linjie_dish.desc;
+      linjie_card.classList.remove('linjie_pop');
+      void linjie_card.offsetWidth; // 强制重绘，保证连续触发时动画每次都重新播放
+      linjie_card.classList.add('linjie_pop');
+    }
+
+    /* linjie_onMotion —— 功能：devicemotion 事件处理——取 accelerationIncludingGravity 的 x/y/z
+       计算合成加速度模长 √(x²+y²+z²)；静止时约 9.8（只剩重力），剧烈摇动叠加超过阈值 18 判定为摇动；
+       触发后写入 1.5s 冷却截止时间，冷却期内的事件只更新读数、不重复抽签 */
+    function linjie_onMotion(linjie_e) {
+      var linjie_g = linjie_e.accelerationIncludingGravity;
+      if (!linjie_g || linjie_g.x === null) { return; } // 有事件但没数据：等价于不支持，交给探测定时器降级
+      if (!linjie_sensorOk) { linjie_sensorOk = true; linjie_showDiag(true); } // 首次有效数据：取消降级探测并更新诊断
+      var linjie_mag = Math.sqrt(linjie_g.x * linjie_g.x + linjie_g.y * linjie_g.y + linjie_g.z * linjie_g.z);
+      document.getElementById('linjieMeter').textContent = linjie_mag.toFixed(1);
+      // —— 视差兜底驱动：收不到 deviceorientation 的浏览器（华为等）从这里获得倾斜量 ——
+      // 静止时 accelerationIncludingGravity 即重力在手机三轴上的投影，除以 9.8 归一化成 -1~1 倾斜量；
+      // 注：iOS 与安卓的重力符号约定相反，兜底只保证"能动"，方向精度以 deviceorientation 为准
+      if (!linjie_orientOk) {
+        linjie_setTilt(linjie_g.x / 9.8, linjie_g.y / 9.8);
+      }
+      var linjie_now = Date.now();
+      if (linjie_mag > 18 && linjie_now >= linjie_cooldownUntil) {
+        linjie_cooldownUntil = linjie_now + 1500; // 1.5 秒冷却，防止一次摇动的多个高频采样重复触发
+        linjie_draw();
+      }
+    }
+
+    /* linjie_enterFallback —— 功能：降级方案——提示"当前设备不支持，请用手机打开"，
+       并提供"点我抽一次"按钮（点击直接调用 linjie_draw），保证核心功能在无传感器环境可用 */
+    function linjie_enterFallback() {
+      var linjie_hint = document.getElementById('linjieHint');
+      linjie_hint.classList.add('linjie_warn');
+      linjie_hint.innerHTML = '当前设备不支持，请用手机打开 <button class="linjie_btn" id="linjieDrawBtn" type="button">点我抽一次</button>';
+      document.getElementById('linjieDrawBtn').addEventListener('click', linjie_draw);
+      linjie_bindMouseParallax(); // 桌面没有方向传感器：倾斜视差退化为鼠标模拟
+    }
+
+    /* linjie_listen —— 功能：绑定 devicemotion 监听，并启动 1 秒探测定时器——
+       若 1 秒内没收到任何有效加速度数据（无传感器/被系统拦截），自动切换到降级模式 */
+    function linjie_listen() {
+      window.addEventListener('devicemotion', linjie_onMotion);
+      setTimeout(function () {
+        if (!linjie_sensorOk) { linjie_enterFallback(); }
+      }, 1000);
+    }
+
+    /* linjie_showDiag —— 功能：环境自诊断——把"是否 HTTPS 安全上下文 / DeviceMotionEvent 是否存在 /
+       加速度数据 / 方向数据"显示在读数下方。华为等安卓浏览器常只派发 devicemotion 而不派发
+       deviceorientation，两个状态分开显示才能定位"摇一摇能动、视差不动"这类问题（答辩演示用） */
+    function linjie_showDiag(linjie_gotData) {
+      document.getElementById('linjieDiag').textContent = '环境诊断：HTTPS安全上下文=' + (window.isSecureContext ? '是' : '否') +
+        '，DeviceMotionEvent=' + (typeof DeviceMotionEvent === 'undefined' ? '无' : '有') +
+        '，加速度数据=' + (linjie_gotData ? '是' : '否') +
+        '，方向数据=' + (linjie_orientOk ? '是' : '否');
+    }
+
+    /* linjie_clamp —— 功能：把数值钳制到 -1~1 区间，防止倾斜过大时视差位移出格 */
+    function linjie_clamp(linjie_v) { return Math.max(-1, Math.min(1, linjie_v)); }
+
+    /* linjie_setTilt —— 功能：统一入口写入视差目标值（方向传感器与鼠标模拟都走这里） */
+    function linjie_setTilt(linjie_x, linjie_y) {
+      linjie_tilt.gx = linjie_clamp(linjie_x);
+      linjie_tilt.gy = linjie_clamp(linjie_y);
+    }
+
+    /* linjie_onOrient —— 功能：deviceorientation 事件处理（视差首选驱动）——gamma（左右倾，±30° 归一）
+       与 beta（前后倾，以 50° 自然持握角为基准 ±30° 归一）写入视差目标，倾斜手机即驱动视差 */
+    function linjie_onOrient(linjie_e) {
+      if (linjie_e.beta === null || linjie_e.gamma === null) { return; } // 有事件没数据：不处理
+      if (!linjie_orientOk) { linjie_orientOk = true; linjie_showDiag(true); } // 首次方向数据：标记并关闭 motion 兜底
+      linjie_setTilt(linjie_e.gamma / 30, (linjie_e.beta - 50) / 30);
+    }
+
+    /* linjie_bindMouseParallax —— 功能：桌面降级——没有方向传感器时用鼠标位置模拟倾斜：
+       以屏幕中心为原点，鼠标偏移归一化到 -1~1 写入视差目标（只绑定一次） */
+    function linjie_bindMouseParallax() {
+      if (linjie_mouseBound) { return; }
+      linjie_mouseBound = true;
+      document.addEventListener('mousemove', function (linjie_e) {
+        linjie_setTilt((linjie_e.clientX / window.innerWidth - 0.5) * 2, (linjie_e.clientY / window.innerHeight - 0.5) * 2);
+      });
+    }
+
+    /* linjie_parallaxLoop —— 功能：rAF 视差渲染循环（独立于摇一摇）——当前值逐帧向目标缓动（lerp 0.08），
+       遍历视差舞台各层按 data-linjie-depth 系数位移：负 depth（太阳/云）与近景反向滑动，depth 越大
+       位移越多（远山 10 → 近山 24 → 前景丘 42 → 浮标题 58），层间速度差构成强烈纵深；
+       transform 走 translate3d 触发 GPU 合成不引起重排 */
+    var linjie_layers = null; // 舞台各深度层缓存（首次循环时取一次，之后直接用）
+    function linjie_parallaxLoop() {
+      linjie_cur.x += (linjie_tilt.gx - linjie_cur.x) * 0.08;
+      linjie_cur.y += (linjie_tilt.gy - linjie_cur.y) * 0.08;
+      if (!linjie_layers) { linjie_layers = document.querySelectorAll('#linjieStage [data-linjie-depth]'); }
+      for (var linjie_i = 0; linjie_i < linjie_layers.length; linjie_i++) {
+        var linjie_depth = parseFloat(linjie_layers[linjie_i].getAttribute('data-linjie-depth'));
+        linjie_layers[linjie_i].style.transform = 'translate3d(' + (linjie_cur.x * linjie_depth).toFixed(2) + 'px,' + (linjie_cur.y * linjie_depth * 0.55).toFixed(2) + 'px,0)';
+      }
+      requestAnimationFrame(linjie_parallaxLoop);
+    }
+
+    /* linjie_init —— 功能：入口分流——
+       ① 浏览器根本不认识 DeviceMotionEvent（桌面常见）→ 直接降级；
+       ② iOS 13+ 需要用户手势授权 → 先显示"开启体感权限"按钮，授权通过才监听，拒绝则降级；
+       ③ 其他支持环境 → 直接监听 + 探测定时器兜底 */
+    function linjie_init() {
+      if (typeof DeviceMotionEvent === 'undefined') {
+        linjie_enterFallback();
+        return;
+      }
+      if (typeof DeviceMotionEvent.requestPermission === 'function') {
+        var linjie_hint = document.getElementById('linjieHint');
+        linjie_hint.innerHTML = 'iOS 需要授权后才能摇 <button class="linjie_btn" id="linjiePermBtn" type="button">开启体感权限</button>';
+        document.getElementById('linjiePermBtn').addEventListener('click', function () {
+          DeviceMotionEvent.requestPermission().then(function (linjie_state) {
+            if (linjie_state === 'granted') {
+              // 方向传感器（视差用）同样需要手势授权：趁同一个手势一起请求，失败不阻断摇一摇
+              if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission().catch(function () {});
+              }
+              document.getElementById('linjieHint').textContent = '摇一摇手机，抽今日菜谱';
+              linjie_listen();
+            } else {
+              linjie_enterFallback();
+            }
+          }).catch(linjie_enterFallback);
+        });
+        return;
+      }
+      linjie_listen();
+    }
+
+    linjie_showDiag(false);
+    linjie_init();
+    requestAnimationFrame(linjie_parallaxLoop); // 启动视差渲染循环（目标不变时缓动值自然稳定，开销可忽略）
+  </script>
+</body>
+</html>

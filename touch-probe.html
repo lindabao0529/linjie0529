@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<!-- 作者：林洁 ｜ 建立时间：2026-11-16 ｜ 使用模型：GLM-5.3-Flash ｜ 功能：任务一·事件侦探——触摸事件探针区，实时记录 touchstart/touchmove/touchend/touchcancel/click 触发顺序与坐标，canvas 自动绘制手指轨迹（加分项） -->
+<title>事件侦探 · 触摸事件探针</title>
+<style>
+  :root {
+    --linjie_txt: #2b2f3a;
+    --linjie_sub: #8891a3;
+    --linjie_bg: #f2f4f9;
+    --linjie_card: #ffffff;
+    --linjie_blue: #2f6fed;
+    --linjie_border: #e3e8f2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: var(--linjie_bg); color: var(--linjie_txt);
+    padding: 56px 16px 48px; max-width: 720px; margin: 0 auto;
+  }
+  .linjie_back { position: fixed; top: 12px; left: 14px; color: var(--linjie_sub); text-decoration: none; font-size: 13px; z-index: 10; }
+  .linjie_back:hover { color: var(--linjie_blue); }
+  .linjie_head { text-align: center; margin-bottom: 26px; }
+  .linjie_head h1 { font-size: 22px; margin-bottom: 6px; }
+  .linjie_head p { font-size: 13px; color: var(--linjie_sub); }
+  .linjie_section {
+    background: var(--linjie_card); border-radius: 16px; padding: 20px 18px; margin-bottom: 18px;
+    box-shadow: 0 4px 16px rgba(43,47,58,.06);
+  }
+  .linjie_section h2 { font-size: 16px; margin-bottom: 12px; }
+  .linjie_section h2 em { font-style: normal; color: var(--linjie_blue); margin-right: 6px; }
+
+  /* ===== 第1节：操作清单 ===== */
+  .linjie_ops { list-style: none; }
+  .linjie_ops li { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; font-size: 13.5px; border-bottom: 1px dashed var(--linjie_border); }
+  .linjie_ops li:last-child { border-bottom: none; }
+  .linjie_ops b { flex: none; color: var(--linjie_blue); font-size: 12px; }
+
+  /* ===== 第2节：验收三问 ===== */
+  details { border-bottom: 1px dashed var(--linjie_border); padding: 8px 0; }
+  details:last-child { border-bottom: none; }
+  details summary { font-size: 13.5px; cursor: pointer; color: var(--linjie_deep, #2b2f3a); }
+  details p { font-size: 13px; color: #4b5568; line-height: 1.9; margin-top: 8px; }
+
+  /* ===== 第3节：探针区 ===== */
+  .linjie_probe {
+    height: 300px; border-radius: 14px; border: 2px dashed #b9c6de;
+    background: linear-gradient(160deg, #eef3fd 0%, #e4ecfa 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: #6f7d99; text-align: center; line-height: 2;
+    touch-action: none; /* 探针区拦截所有默认手势，保证事件全部到达日志 */
+    user-select: none; -webkit-user-select: none;
+  }
+  .linjie_counters { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 14px 0 10px; }
+  .linjie_counter { background: #f5f8fe; border: 1px solid var(--linjie_border); border-radius: 10px; text-align: center; padding: 8px 4px; }
+  .linjie_counter b { display: block; font-size: 18px; color: var(--linjie_blue); font-variant-numeric: tabular-nums; }
+  .linjie_counter span { font-size: 11px; color: var(--linjie_sub); }
+  .linjie_toolbar { display: flex; gap: 10px; margin-bottom: 10px; }
+  .linjie_btn {
+    padding: 7px 16px; font-size: 13px; border-radius: 9px; cursor: pointer;
+    border: 1px solid var(--linjie_border); background: #ffffff; color: var(--linjie_txt);
+  }
+  .linjie_btn:hover { border-color: var(--linjie_blue); color: var(--linjie_blue); }
+  .linjie_log {
+    height: 190px; overflow-y: auto; background: #1e2430; color: #cfe0ff;
+    border-radius: 10px; padding: 10px 12px; font-family: Consolas, monospace; font-size: 12px; line-height: 1.8;
+  }
+  .linjie_log .linjie-ev-start { color: #7ce38b; }
+  .linjie_log .linjie-ev-end { color: #ffd479; }
+  .linjie_log .linjie-ev-cancel { color: #ff7b72; }
+  .linjie_log .linjie-ev-click { color: #d2a8ff; }
+  .linjie_log .linjie-ev-move { color: #8ab4f8; }
+
+  /* ===== 第4节：轨迹图 ===== */
+  .linjie_trail-canvas { display: block; width: 100%; height: 300px; border-radius: 14px; border: 2px dashed #b9c6de; background: #ffffff; touch-action: none; }
+  .linjie_trail-note { font-size: 12.5px; color: var(--linjie_sub); margin-top: 8px; line-height: 1.8; }
+</style>
+</head>
+<body>
+  <a class="linjie_back" href="index.html">← 返回首页</a>
+
+  <div class="linjie_head">
+    <h1>任务一 · 事件侦探</h1>
+    <p>一次拖动到底发生了什么——用探针区记录触摸事件的触发顺序</p>
+  </div>
+
+  <!-- 第1节：5 种标准操作清单 -->
+  <div class="linjie_section">
+    <h2><em>第 1 节</em>操作清单（在探针区依次完成）</h2>
+    <ul class="linjie_ops">
+      <li><b>①</b>单击（轻点一下立即抬起）</li>
+      <li><b>②</b>向上拖动（按住并缓缓上移）</li>
+      <li><b>③</b>向左快速滑（flick 快速轻扫）</li>
+      <li><b>④</b>双指触摸（可选，两根手指同时按）</li>
+      <li><b>⑤</b>长按后抬起（按住不动约 2 秒再松开）</li>
+    </ul>
+  </div>
+
+  <!-- 第2节：验收三问与参考答案 -->
+  <div class="linjie_section">
+    <h2><em>第 2 节</em>验收三问（先自己答，再展开参考答案）</h2>
+    <details>
+      <summary>① 一次拖动里 touchmove 大约触发多少次？和距离有什么关系？</summary>
+      <p>touchmove 不是按距离触发的，而是**按帧采样**：浏览器约每 16.7ms（60Hz）采一次，所以拖得越久、越远，触发次数越多——一次快速轻扫可能只触发 3~8 次，缓慢拖动 2 秒可达上百次。结论：次数 ≈ 拖动时长 × 采样频率，与距离正相关但不成比例。</p>
+    </details>
+    <details>
+      <summary>② click 出现在 touchend 之前还是之后？</summary>
+      <p>之后。完整顺序是 touchstart → touchmove(若干) → touchend → click。click 是浏览器在手指抬起（touchend）后才**合成**出来的鼠标事件，用于兼容鼠标逻辑。探针日志里可以看到 click 永远排在 touchend 下一行。</p>
+    </details>
+    <details>
+      <summary>③ 如果把 touchend 换成 touchcancel，会发生什么？</summary>
+      <p>正常松开手指不再触发任何结束处理：touchend 只在"正常抬起"时触发，而 touchcancel 在手势**被系统打断**时触发（来电、手势导航条、弹窗、浏览器接管滚动等），两者互斥。若只监听 touchcancel，日常点击/滑动全部失效；正确做法是**两个都监听**，都当作"手势结束"处理——本页探针区就是这样做的。</p>
+    </details>
+  </div>
+
+  <!-- 第3节：探针区 -->
+  <div class="linjie_section">
+    <h2><em>第 3 节</em>探针区（在此区域内完成上述 5 种操作）</h2>
+    <div class="linjie_probe" id="linjieProbe">
+      把手指放进这块区域<br>每一次触摸都会被记录 ↓
+    </div>
+    <div class="linjie_counters" id="linjieCounters"></div>
+    <div class="linjie_toolbar">
+      <button class="linjie_btn" id="linjieClearLog" type="button">清空日志</button>
+      <button class="linjie_btn" id="linjieClearTrail" type="button">清空轨迹图</button>
+    </div>
+    <div class="linjie_log" id="linjieLog"></div>
+  </div>
+
+  <!-- 第4节：轨迹草图（加分项的自动化版本） -->
+  <div class="linjie_section">
+    <h2><em>第 4 节</em>手指轨迹图（加分项 · canvas 自动绘制）</h2>
+    <canvas class="linjie_trail-canvas" id="linjieTrail"></canvas>
+    <p class="linjie_trail-note">手指在探针区移动时，实际路径会同步画到这里——圆点是起点、折线是路径、箭头是终点方向。对照轨迹可以解释：为什么快速轻滑的 touchmove 次数少、缓慢拖动的次数多。</p>
+  </div>
+
+  <script>
+    /* linjie_evMeta —— 功能：5 类事件的元数据表——显示名、日志配色类名、计数器下标，统一驱动计数与日志 */
+    var linjie_evMeta = {
+      touchstart:  { label: 'touchstart',  cls: 'linjie-ev-start',  idx: 0 },
+      touchmove:   { label: 'touchmove',   cls: 'linjie-ev-move',   idx: 1 },
+      touchend:    { label: 'touchend',    cls: 'linjie-ev-end',    idx: 2 },
+      touchcancel: { label: 'touchcancel', cls: 'linjie-ev-cancel', idx: 3 },
+      click:       { label: 'click',       cls: 'linjie-ev-click',  idx: 4 }
+    };
+    var linjie_counts = [0, 0, 0, 0, 0]; // 五类事件计数器
+    var linjie_lastPos = null;           // 上一个事件坐标（touchmove 用于计算移动距离）
+    var linjie_logCount = 0;             // 日志行数上限控制
+
+    /* linjie_fmtTime —— 功能：取当前时刻的 时:分:秒.毫秒 格式字符串，用于日志时间戳 */
+    function linjie_fmtTime() {
+      var linjie_d = new Date();
+      var linjie_pad = function (linjie_n, linjie_w) { return ('000' + linjie_n).slice(-linjie_w); };
+      return linjie_pad(linjie_d.getHours(), 2) + ':' + linjie_pad(linjie_d.getMinutes(), 2) + ':' +
+             linjie_pad(linjie_d.getSeconds(), 2) + '.' + linjie_pad(linjie_d.getMilliseconds(), 3);
+    }
+
+    /* linjie_renderCounters —— 功能：把五类事件计数渲染成顶部统计格子（每次事件后刷新对应格子） */
+    function linjie_renderCounters() {
+      var linjie_wrap = document.getElementById('linjieCounters');
+      var linjie_html = '';
+      ['touchstart', 'touchmove', 'touchend', 'touchcancel', 'click'].forEach(function (linjie_key) {
+        var linjie_m = linjie_evMeta[linjie_key];
+        linjie_html += '<div class="linjie_counter"><b>' + linjie_counts[linjie_m.idx] + '</b><span>' + linjie_m.label + '</span></div>';
+      });
+      linjie_wrap.innerHTML = linjie_html;
+    }
+
+    /* linjie_appendLog —— 功能：往日志面板顶部插入一行事件记录——时间戳、事件名、坐标、手指数或移动距离；最多保留 120 行防卡顿 */
+    function linjie_appendLog(linjie_type, linjie_detail) {
+      var linjie_m = linjie_evMeta[linjie_type];
+      var linjie_el = document.getElementById('linjieLog');
+      var linjie_line = document.createElement('div');
+      linjie_line.className = linjie_m.cls;
+      linjie_line.textContent = '[' + linjie_fmtTime() + '] ' + linjie_m.label + (linjie_detail ? ' · ' + linjie_detail : '');
+      linjie_el.insertBefore(linjie_line, linjie_el.firstChild);
+      linjie_logCount++;
+      if (linjie_logCount > 120) { linjie_el.removeChild(linjie_el.lastChild); linjie_logCount = 120; }
+      linjie_counts[linjie_m.idx]++;
+      linjie_renderCounters();
+    }
+
+    /* linjie_posOf —— 功能：把事件的触点坐标换算成探针区内部坐标（相对左上角），返回 {x, y, fingers} */
+    function linjie_posOf(linjie_e) {
+      var linjie_rect = document.getElementById('linjieProbe').getBoundingClientRect();
+      var linjie_t = linjie_e.changedTouches ? linjie_e.changedTouches[0] : null;
+      return {
+        x: Math.round((linjie_t ? linjie_t.clientX : linjie_e.clientX) - linjie_rect.left),
+        y: Math.round((linjie_t ? linjie_t.clientY : linjie_e.clientY) - linjie_rect.top),
+        fingers: linjie_e.touches ? linjie_e.touches.length : 0
+      };
+    }
+
+    /* linjie_setupTrail —— 功能：让 canvas 内部分辨率与 CSS 显示尺寸一致（否则坐标会错位），窗口变化时重设并清空 */
+    function linjie_setupTrail() {
+      var linjie_cvs = document.getElementById('linjieTrail');
+      linjie_cvs.width = linjie_cvs.clientWidth;
+      linjie_cvs.height = linjie_cvs.clientHeight;
+      linjie_cvs.getContext('2d').clearRect(0, 0, linjie_cvs.width, linjie_cvs.height);
+    }
+
+    /* linjie_drawTrailDot —— 功能：在 canvas 轨迹图上画一个圆点（触摸起点与每个 move 采样点） */
+    function linjie_drawTrailDot(linjie_x, linjie_y) {
+      var linjie_ctx = document.getElementById('linjieTrail').getContext('2d');
+      linjie_ctx.fillStyle = '#2f6fed';
+      linjie_ctx.beginPath();
+      linjie_ctx.arc(linjie_x, linjie_y, 3.5, 0, Math.PI * 2);
+      linjie_ctx.fill();
+    }
+
+    /* linjie_drawTrailLine —— 功能：在轨迹图上把上一个采样点与当前点连成折线段（还原手指实际路径） */
+    function linjie_drawTrailLine(linjie_from, linjie_to) {
+      var linjie_ctx = document.getElementById('linjieTrail').getContext('2d');
+      linjie_ctx.strokeStyle = '#2f6fed';
+      linjie_ctx.lineWidth = 3;
+      linjie_ctx.lineCap = 'round';
+      linjie_ctx.beginPath();
+      linjie_ctx.moveTo(linjie_from.x, linjie_from.y);
+      linjie_ctx.lineTo(linjie_to.x, linjie_to.y);
+      linjie_ctx.stroke();
+    }
+
+    /* linjie_bindProbe —— 功能：核心绑定——探针区监听 5 类事件，全部写入日志；
+       touchmove 额外计算与本行上一坐标的距离并画轨迹连线；touchend/touchcancel 都视为手势结束 */
+    function linjie_bindProbe() {
+      var linjie_probe = document.getElementById('linjieProbe');
+      // touchstart：记录起点，日志带手指数（双指操作时 fingers=2），轨迹图画起点圆点
+      linjie_probe.addEventListener('touchstart', function (linjie_e) {
+        var linjie_p = linjie_posOf(linjie_e);
+        linjie_lastPos = linjie_p;
+        linjie_appendLog('touchstart', '坐标(' + linjie_p.x + ',' + linjie_p.y + ') · 手指数:' + linjie_p.fingers);
+        linjie_drawTrailDot(linjie_p.x, linjie_p.y);
+      });
+      // touchmove：高频采样事件——日志显示与上一次的偏移距离，直观体现"按帧触发"；轨迹图同步连线
+      linjie_probe.addEventListener('touchmove', function (linjie_e) {
+        var linjie_p = linjie_posOf(linjie_e);
+        var linjie_detail = '坐标(' + linjie_p.x + ',' + linjie_p.y + ')';
+        if (linjie_lastPos) {
+          var linjie_dx = linjie_p.x - linjie_lastPos.x, linjie_dy = linjie_p.y - linjie_lastPos.y;
+          linjie_detail += ' · 距上次移动 ' + Math.round(Math.sqrt(linjie_dx * linjie_dx + linjie_dy * linjie_dy)) + 'px';
+          linjie_drawTrailLine(linjie_lastPos, linjie_p);
+        }
+        linjie_lastPos = linjie_p;
+        linjie_appendLog('touchmove', linjie_detail);
+        linjie_drawTrailDot(linjie_p.x, linjie_p.y);
+      }, { passive: true }); // 探针区只记录不阻止默认行为，passive 提升滚动性能
+      // touchend：正常抬起——与 touchstart 的 changedTouches 对应
+      linjie_probe.addEventListener('touchend', function (linjie_e) {
+        var linjie_p = linjie_posOf(linjie_e);
+        linjie_lastPos = null;
+        linjie_appendLog('touchend', '坐标(' + linjie_p.x + ',' + linjie_p.y + ')');
+      });
+      // touchcancel：系统打断（来电/手势导航/弹窗）——与 touchend 互斥，本探针把它当"手势结束"记录
+      linjie_probe.addEventListener('touchcancel', function (linjie_e) {
+        linjie_lastPos = null;
+        linjie_appendLog('touchcancel', '手势被系统打断（未触发 touchend）');
+      });
+      // click：浏览器在 touchend 之后合成的鼠标事件——日志顺序可直接验证验收问题②
+      linjie_probe.addEventListener('click', function (linjie_e) {
+        var linjie_p = linjie_posOf(linjie_e);
+        linjie_appendLog('click', '坐标(' + linjie_p.x + ',' + linjie_p.y + ') · 由 touchend 后合成');
+      });
+    }
+
+    /* linjie_bindToolbar —— 功能：清空日志按钮重置计数与列表；清空轨迹按钮重置画布 */
+    function linjie_bindToolbar() {
+      document.getElementById('linjieClearLog').addEventListener('click', function () {
+        document.getElementById('linjieLog').innerHTML = '';
+        linjie_counts = [0, 0, 0, 0, 0];
+        linjie_renderCounters();
+      });
+      document.getElementById('linjieClearTrail').addEventListener('click', function () {
+        var linjie_cvs = document.getElementById('linjieTrail');
+        linjie_cvs.getContext('2d').clearRect(0, 0, linjie_cvs.width, linjie_cvs.height);
+      });
+    }
+
+    // 初始化：渲染计数格、适配轨迹画布尺寸、绑定探针与工具按钮；窗口尺寸变化时重设画布
+    linjie_renderCounters();
+    linjie_setupTrail();
+    window.addEventListener('resize', linjie_setupTrail);
+    linjie_bindProbe();
+    linjie_bindToolbar();
+  </script>
+</body>
+</html>

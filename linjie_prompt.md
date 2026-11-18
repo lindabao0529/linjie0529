@@ -474,6 +474,201 @@
 >
 > （说明：swiper-task.html 中 zoom 双击缩放功能从演示二迁移到演示五——①演示二：删除 zoom 配置块、摘掉 6 张 slide 的 swiper-zoom-container 包裹、标签文字去掉"双击图片可缩放"；②演示五：配置加 zoom: {maxRatio:3, minRatio:1, toggle:true}，6 张初始 slide 与 linjie_nextSlide 动态生成的 slide HTML 全部包进 swiper-zoom-container（动态新增的展品同样支持双击缩放），标签文字补充缩放提示）
 
+---
+
+## 记录 42
+
+- **时间**: 2026-11-12 11:05:18
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 给我新建一个html文件，显示上图下文的结构，图片和文字通过本地启动服务器获取当前文件夹下面的db里面db.json的poems里面的图片，title和content。并给我生成server.js数据服务器文件，server.js放在db文件夹中。其中端口号为3004。
+>
+> （说明：新建 poems.html——上图下文卡片网格（auto-fill 响应式），fetch http://localhost:3004/poems 取数据渲染（db.json 字段为 pic/title/content），服务器未启动时显示启动指引；新建 db/server.js——Node 原生 http 模块实现，端口 3004，提供 /poems 数据接口与 /db.json 原文件直出，带 CORS 头与 404 分支，全部函数带中文功能注释。已实测：/poems 返回 4 条诗词、/db.json 200、未知路径 404）
+
+---
+
+## 记录 43
+
+- **时间**: 2026-11-12 12:04:42
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 启动 server.js，把 poems.html 补完，使 4 首诗词全部渲染出图片、标题、内容。关闭服务器再刷新，页面应给出提示而不是白屏（要求你写下 catch 分支）。我想要可以实现这个要求
+>
+> （说明：poems.html 已被移至 db/ 目录——修复返回链接为 ../index.html，首页卡片链接同步改为 db/poems.html；页面本就包含完整 catch 分支（fetch 失败时显示黄色提示条而非白屏）与 4 首诗词的上图下文渲染（pic/title/content）。实测确认：3004 服务器在运行、/poems 返回 4 条、Gitee 图片外链 200 可加载）
+
+---
+
+## 记录 44
+
+- **时间**: 2026-11-12 12:18:26
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 再把poems.html移出来
+>
+> （说明：db/poems.html 移回项目根目录——返回链接恢复为 index.html，首页卡片链接恢复为 poems.html，catch 分支保留并补充注释，db/ 目录只保留 server.js 与 db.json）
+
+ ---
+
+## 记录 45
+
+- **时间**: 2026-11-12 12:52:37
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 在 db.json 的 poems 数组新增两条诗词（包含 author、title、content、img）；在 server.js 添加接口 GET /api/authors，返回去重作者数组；页面使用 promise.all 并发 fetch /api/poems 和 /api/authors；两个接口浏览器可访问返回 JSON，带上基础异常捕获，给出完整可直接运行代码。
+>
+> （说明：①db.json——原 4 条补 author 字段（曹操/王驾/杜甫/秦观），新增《静夜思》李白与《春晓》孟浩然（author/title/content/img 四字段，图片用 Gitee 外链 img/1.jpg、img/5.jpg，已实测 200）；②server.js——新增 GET /api/poems（与 /poems 同数据）与 GET /api/authors（linjie_getAuthors 对象键去重），404 提示同步更新；③poems.html——改用 Promise.all 并发请求两接口，都返回后渲染作者筛选条（事件委托+排他高亮+按作者过滤）与上图下文卡片（含作者行），linjie_picOf 兼容 img/pic 字段，onerror 兜底裂图；Promise.all 任一失败进 catch 显示提示条不白屏。实测：/api/poems 返回 6 条、/api/authors 去重返回 6 位作者）
+
+---
+
+## 记录 46
+
+- **时间**: 2026-11-12 13:20:44
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 页面顶部加一个搜索框，输入关键字后只显示标题或内容匹配的诗词（数据仍来自 fetch，不重新请求也可以）；再加一个"按标题长度排序"按钮。
+>
+> （说明：poems.html 新增统一视图管线——linjie_allPoems 缓存 fetch 数据，linjie_applyView 按"作者+关键字"过滤（indexOf 不区分大小写）后按标题长度排序（slice 复制防污染原数组）再渲染，空结果显示占位提示；搜索框 input 事件输入即过滤不重新请求；排序按钮升序/降序交替切换（↑/↓ 文字与高亮同步）；作者圆片改为更新状态后走同一管线，三个控件可叠加生效。修复了初版排序比较器的逻辑错误）
+
+---
+
+## 记录 47
+
+- **时间**: 2026-11-16 10:30:19
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 在项目中新建移动端页面 mobile-gesture.html：1、页面显示一张美食卡片，共 4 道菜（菜名、简介、渐变背景），底部显示"第 1/4 张"；2、监听 touchstart / touchend，用 changedTouches[0] 计算横向位移，阈值 40px；3、左滑切到下一张，右滑切到上一张，边界时给出提示文字"已经是第一张/最后一张"；4、卡片容器加 touch-action: pan-y，保证纵向还能滚动页面；5、切换时加 0.3s 过渡动画，并防止快速连滑一次跳两张（加 300ms 冷却）；
+>
+> （说明：mobile-gesture.html 纯原生实现——①数据 linjie_dishes 四道菜（宫保鸡丁/麻婆豆腐/糖醋里脊/东坡肉）各配专属渐变；②手势 linjie_bindTouch：touchstart 记起点、touchend 用 changedTouches[0] 算 dx/dy，|dx|>40 且 |dx|>|dy| 才判定（防与纵向滚动冲突）；③linjie_switchCard：越界时 linjie_showToast 提示"已经是第一张/最后一张"，合法切换做两阶段动画——0.3s 滑出淡出、换内容后无过渡摆到进场侧再滑回原位（void offsetWidth 强制重绘）；④linjie_lockUntil 时间戳冷却 300ms 与动画同步，touchend 与 switchCard 双重拦截防连滑；⑤touch-action: pan-y 放行纵向滚动；页码"第 X/4 张"实时更新；index.html 目录已加卡片）
+
+---
+
+## 记录 48
+
+- **时间**: 2026-11-16 11:05:36
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> （课堂实践任务卡截图：任务一·事件侦探——用手机或 DevTools 设备模式打开本页，对第 3 节探针区依次做 5 种操作（单击/向上拖动/向左快速滑/双指触摸/长按后抬起），把事件触发顺序记录到表；验收三问：①touchmove 触发次数与距离的关系 ②click 在 touchend 之前还是之后 ③touchend 换成 touchcancel 会怎样；加分：坐标做成轨迹草图。任务二标题可见"手势卡片：左右滑动切换内容"，任务三四被截断）
+>
+> （说明：新建 touch-probe.html 实现任务一——第1节 5 种操作清单；第2节 验收三问参考答案（details 折叠）；第3节 探针区（touch-action:none）监听 5 类事件：日志行含时间戳毫秒/坐标/手指数/touchmove 相邻采样距离，五类事件计数格实时刷新，日志上限 120 行；第4节 canvas 轨迹图（加分项自动化版）：touchmove 折线连线 + 采样点圆点，linjie_setupTrail 同步 canvas 内部分辨率与 CSS 尺寸防坐标错位，resize 重设；日志配色区分事件类型。注意：任务卡截图不完整，任务二~四待用户补充后实现）
+
+---
+
+## 记录 49
+
+- **时间**: 2026-11-16 11:42:08
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 在项目中新建 mobile-zoom.html，实现移动端图片查看器：1、一张大图放在容器里，容器 overflow:hidden，touch-action:none，user-select:none；2、touchstart 记录单指/双指状态与两指初始距离；3、touchmove 双指时按距离比例缩放（1～4 倍），以两指中点为缩放基准；4、单指且 scale>1 时拖动图片，松手后限制在边界内；5、双击在 1x 与 2x 之间切换，带 0.25s 过渡；6、页面打开时提示"双指缩放请用手机打开"；7、完成后说明你是如何保证"缩放不跳"的（准备答辩）。
+>
+> （说明：mobile-zoom.html 实现——容器 overflow:hidden/touch-action:none/user-select:none，img object-fit:contain + transform-origin 0 0；缩放用增量法：每次 touchmove 以"本次两指距离/上次距离"的比值乘当前 scale（非初始距离比），钳制 1~4 倍；焦点锚定公式 tx' = mx - (mx-tx)*(s1/s0) 保证两指中点在图上的对应点不动；"缩放不跳"四道保险：①增量缩放 ②焦点锚定 ③2指→1指时把拖动基准重置为剩余手指当前位置 ④移动中实时钳制 + 松手 0.25s 过渡回弹（linjie_clampOffset 最大平移 = (缩放后尺寸-容器)/2）；双击自判定：非捏合手势、按下<260ms、两次单击间隔<300ms 且位移<24px，切换 1x↔2x 并以点击点为焦点；touchstart preventDefault(passive:false) 阻止浏览器原生缩放；无触屏设备提示条加强调样式；图片用 swiper-imgs/aidu_1_1.jpg；index.html 已加卡片）
+
+---
+
+## 记录 50
+
+- **时间**: 2026-11-16 12:18:45
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 在项目中新建 mobile-sensor.html，实现"摇一摇"功能：1、页面提示"摇一摇手机，抽今日菜谱"，下方显示结果；2、监听 devicemotion，取 accelerationIncludingGravity 计算合成加速度；3、超过阈值（约 18）判定为摇动，触发后进入 1.5 秒冷却，防止一次摇动重复触发；4、随机抽取一道菜显示出来，带简单的弹出动画；5、检测不到该事件或没有数据时，显示"当前设备不支持，请用手机打开"，并提供"点我抽一次"的按钮作为降级方案；6、附一段说明：为什么必须做降级。
+>
+> （说明：mobile-sensor.html 实现——①linjie_onMotion 取 accelerationIncludingGravity 计算 √(x²+y²+z²) 合成加速度（静止约 9.8，摇动叠加超 18 判定），实时读数显示在页面上供答辩演示；②触发后 linjie_cooldownUntil = now+1500 冷却，冷却期内只更新读数不抽签，防一次摇动的高频采样重复触发；③linjie_draw 随机抽 8 道菜之一，弹出动画 linjie_pop（keyframes scale .5→1.08→1 带微旋转），重触发用"移除类→void offsetWidth 强制重绘→加回"保证每次都播；④降级三级分流：DeviceMotionEvent 不存在直接降级；iOS 13+ 用手势触发的 requestPermission 授权（拒绝降级）；其余环境监听后启动 1 秒探测定时器，收不到有效数据自动 linjie_enterFallback（提示"当前设备不支持，请用手机打开"+"点我抽一次"按钮）；⑤页内"为什么必须做降级"说明：设备差异/iOS 权限/HTTPS 与隐私模式/DevTools 不模拟加速度；index.html 已加卡片）
+
+- **时间**: 2026-11-16 12:30:10
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 怎么在手机上的打开mobile-zoom.html和`D:/GJWLSJ/529linjie/mobile-sensor.html`
+>
+> （说明：手机与电脑连同一 Wi-Fi，在项目目录启动局域网静态服务器，手机浏览器访问 http://电脑局域网IP:端口/mobile-zoom.html 与 /mobile-sensor.html。devicemotion 与 touch 事件必须在手机真机上才能测——DevTools 设备模拟不触发传感器。）
+
+- **时间**: 2026-11-16 12:42:30
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 在mobile-sensor.html中添加倾斜视差功能
+>
+> （说明：新增 deviceorientation 倾斜视差——beta（前后倾）/gamma（左右倾）按 ±30° 归一化为 -1~1 目标值，rAF 循环 lerp 0.08 缓动，结果卡片（前景，位移14/10px+2°微旋转）与菜名 emoji（近景，位移30/20px）分层位移形成视差；iOS 在体感授权的同一手势里顺带请求 DeviceOrientationEvent 权限；桌面无方向传感器时降级为鼠标位置模拟倾斜（复用页面的降级设计思想），并在降级说明里补充一条"视差同理"。）
+
+- **时间**: 2026-11-16 12:55:20
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 重新给我一个mobile-sensor.html的链接
+>
+> （说明：确认 8000 端口静态服务器仍在运行后，重新给出局域网访问地址 http://192.168.43.136:8000/mobile-sensor.html。）
+
+- **时间**: 2026-11-16 14:40:15
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 手机上摇一摇摇不了（附手机截图：页面已显示降级提示"当前设备不支持"，合成加速度读数为"--"）
+>
+> （说明：诊断——手机上从未收到 devicemotion 数据，根因是局域网地址 http://192.168.43.136:8000 非"安全上下文"，Chrome 系浏览器只允许 HTTPS/localhost 页面使用 devicemotion/deviceorientation，HTTP 页面拿不到任何传感器数据，1 秒探测定时器判定失败自动降级——降级方案正好兜住了这个场景。页面新增一行"环境诊断"（isSecureContext / DeviceMotionEvent 是否存在 / 是否收到有效数据），刷新页面即可自证原因；解决方案：①手机 Chrome 地址栏进 chrome://flags#unsafely-treat-insecure-origin-as-secure 填入该地址并重启；②推送到 GitHub 开 Pages 用真 HTTPS；③不要在微信/QQ 内置浏览器里测。）
+
+- **时间**: 2026-11-16 15:02:40
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 使用华为自带浏览器还是摇不了
+>
+> （说明：华为自带浏览器没有 chrome://flags 开关，HTTP 下同样禁止传感器——改用自签证书起 HTTPS 服务器（https-server.js，端口 8443）：openssl 生成自签证书，Node https 模块托管项目目录，手机访问 https://192.168.43.136:8443/mobile-sensor.html 并手动"继续前往"绕过证书警告，页面即处于安全上下文，devicemotion 正常出数据；若华为浏览器绕过后诊断行仍显示"否"，则改走 GitHub Pages 真 HTTPS。）
+
+- **时间**: 2026-11-16 15:20:10
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 在mobile-zoom添加一个"双指旋转"（用 Math.atan2 算角度差）
+>
+> （说明：双指旋转与捏合缩放共用 touchstart/move——每次双指 touchmove 用 Math.atan2(y2-y1, x2-x1) 算两指连线角度，与上一次的角度差（需处理 ±180° 环绕跳变）累加进 linjie_state.rot，transform 按 translate→rotate→scale 顺序应用；单指拖动、边界钳制、双击重置逻辑不变，双击回 1x 时 rot 也归零。）
+
+- **时间**: 2026-11-16 16:05:30
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 把mobile-sensor的倾斜视差单拎出来（不在摇一摇上面做效果，不是重新建一个html文件），并且效果明显一点
+>
+> （说明：视差与摇一摇解耦——不再对结果卡片/emoji 做位移，改为页内独立的"分层视差舞台"区块：纯 CSS 渐变画 5 个深度层（太阳/云-12 反向、远山 10、近山 24、前景丘 42、浮标题 58），linjie_parallaxLoop 按每层 data-linjie-depth 系数位移，近景动得多、远景动得少甚至反向，倾斜一眼可见；驱动不变（deviceorientation 倾斜 / 桌面鼠标模拟），缓动 lerp 0.08 保留。）
+
+- **时间**: 2026-11-16 17:20:40
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 暮色视差在手机上没有效果（截图：HTTPS 已通、devicemotion 有数据、但视差舞台不动）
+>
+> （说明：根因——视差驱动是 deviceorientation，而截图诊断的"有效数据"来自 devicemotion；华为等安卓浏览器常只派发 devicemotion 不派发 deviceorientation，视差无驱动力。修复：①诊断行拆分显示"加速度数据/方向数据"两个独立状态；②新增兜底驱动——linjie_onMotion 里当方向数据缺失（linjie_orientOk=false）时，用 accelerationIncludingGravity 重力分量近似倾斜角：静止时读数即重力在手机三轴的投影，x/9.8、y/9.8 归一化为视差目标（注：iOS 与安卓符号约定相反，兜底保证"能动"，方向以 deviceorientation 为准）。）
+
+- **时间**: 2026-11-16 17:58:30
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> （附"4 关递进"任务卡两张完整截图）帮我生成一个页面，里面包含上面所做的任务综合
+>
+> （说明：新建 mobile-all.html 综合汇报页——把任务一事件侦探（touch-probe.html）、任务二手势卡片（mobile-gesture.html）、任务三图片查看器（mobile-zoom.html）、任务四摇一摇+倾斜视差（mobile-sensor.html）四关收进一页：每关含验收问题答案、遇到的坑与解决方法、iframe 实时演示与作品入口；页首附"提交要求三项对照"（运行截图指引/坑与解决/AI 提示词记录入口 prompt-log.html）；index.html 同步加卡片。）
+
+- **时间**: 2026-11-16 18:20:10
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 在mobile-all.html的任务三和任务四中再预留一个可以放视频的地方
+>
+> （说明：任务三、任务四区块各加一个"运行视频预留位"——虚线框内放原生 <video controls> 元素（aspect-ratio 16:9、深色底），src 暂空并在旁边说明用法：录屏文件放进项目目录后把 video 标签的 src 填上文件名即可播放；预留位用视频而不是图片，方便答辩时演示真机操作过程。）
+
+- **时间**: 2026-11-18 00:35:20
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 上面图片是我的视频路径，帮我添加视频（截图：D:\GJWLSJ\529linjie\swiper-imgs\ 下有 video.mp4 与 video(1).mp4）
+>
+> （说明：把两段真机录屏填入 mobile-all.html 的两个视频预留位——任务三 src="swiper-imgs/video.mp4"、任务四 src="swiper-imgs/video(1).mp4"（video(1).mp4 文件名含括号，src 需 URL 编码 %28%29 或直接原样引用，本地服务器均可解析）；删除预留说明行与注释示例，更新为"运行视频已就位"。）
 
 
 
@@ -508,3 +703,40 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+- **时间**: 2026-11-18 00:52:10
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 去掉4.手指轨迹图
+>
+> （说明：删除 touch-probe.html 中"第 4 节 · 手指轨迹图"整个区块——canvas 容器 HTML、相关 CSS（linjie_trail 等）、JS 里轨迹相关函数与初始化调用（linjie_setupTrail / linjie_drawTrailLine / linjie_drawTrailDot）、"清空轨迹图"按钮与 resize 监听，只保留第 1~3 节与事件探针；grep 确认无残留引用。）
+
+- **时间**: 2026-11-18 01:05:40
+- **使用模型**: GLM-5.3-Flash
+- **提示词内容**:
+
+> 全部提交到`https://github.com/lindabao0529/linjie0529.git`
+>
+> （说明：按 commit-github 技能把自上次推送以来的全部变更提交并推送到 GitHub——mobile-all.html 综合汇报页（四关验收答案/坑与解决/iframe 实时演示/两段真机录屏视频）、mobile-sensor.html 视差解耦+五层视差舞台+方向数据兜底、mobile-zoom.html 双指旋转、touch-probe.html 移除轨迹图、index.html 新卡片、https-server.js 自签 HTTPS 服务器、linjie_prompt.md 记录补全。）

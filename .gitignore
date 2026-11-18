@@ -3,3 +3,7 @@
 
 # Trae 预览分享缓存
 .trae-html-share-packages/
+
+# Node 依赖与缓存（db/server.js 无依赖运行，node_modules 是误装产物）
+node_modules/
+

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<!-- 作者：林洁 ｜ 建立时间：2026-11-16 ｜ 使用模型：GLM-5.3-Flash ｜ 功能：移动端图片查看器——双指捏合缩放（1~4倍、以两指中点为基准）、双指旋转（Math.atan2 算两指连线角度差累加，绕图片中心）、单指拖动（边界钳制+松手回弹）、双击 1x↔2x 切换（0.25s 过渡），增量缩放+焦点锚定保证"缩放不跳" -->
+<title>移动端图片查看器 · 双指缩放+旋转</title>
+<style>
+  :root {
+    --linjie_txt: #2b2f3a;
+    --linjie_sub: #8891a3;
+    --linjie_bg: #f2f4f9;
+    --linjie_blue: #2f6fed;
+    --linjie_border: #e3e8f2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: var(--linjie_bg); color: var(--linjie_txt);
+    padding: 56px 16px 48px; max-width: 720px; margin: 0 auto;
+  }
+  .linjie_back { position: fixed; top: 12px; left: 14px; color: var(--linjie_sub); text-decoration: none; font-size: 13px; z-index: 10; }
+  .linjie_back:hover { color: var(--linjie_blue); }
+  .linjie_head { text-align: center; margin-bottom: 18px; }
+  .linjie_head h1 { font-size: 22px; margin-bottom: 6px; }
+  .linjie_head p { font-size: 13px; color: var(--linjie_sub); }
+
+  /* ===== 打开提示：触屏能力检测后可能加强调样式 ===== */
+  .linjie_notice {
+    max-width: 460px; margin: 0 auto 16px; padding: 10px 16px; border-radius: 12px;
+    background: #fff8e1; border: 1px solid #f2d98a; color: #8a6d1a; font-size: 13.5px; line-height: 1.8; text-align: center;
+  }
+  .linjie_notice.linjie_no-touch { background: #ffe9e9; border-color: #f2b3b3; color: #a33; }
+
+  /* ===== 查看器容器：overflow:hidden + touch-action:none + user-select:none ===== */
+  .linjie_viewport {
+    position: relative; width: min(92vw, 420px); height: 380px; margin: 0 auto;
+    overflow: hidden;                    /* 缩放后溢出部分裁掉 */
+    touch-action: none;                  /* 所有触摸手势归 JS，禁用浏览器原生缩放/滚动 */
+    user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+    border-radius: 16px; background: #14181f;
+    box-shadow: 0 12px 32px rgba(43,47,58,.2);
+  }
+  .linjie_img {
+    width: 100%; height: 100%;
+    object-fit: contain;                 /* 保持比例完整显示 */
+    transform-origin: 0 0;               /* 缩放基准定在左上角，焦点锚定公式按此推导 */
+    will-change: transform;
+    pointer-events: none;                /* 事件统一收在容器上，图片本身不接事件 */
+  }
+  .linjie_img.linjie_animate { transition: transform .25s ease; } /* 双击切换/松手回弹的 0.25s 过渡 */
+
+  .linjie_status { margin-top: 16px; text-align: center; font-size: 13.5px; color: var(--linjie_sub); }
+  .linjie_status b { color: var(--linjie_blue); font-variant-numeric: tabular-nums; }
+  .linjie_tools { margin-top: 14px; text-align: center; }
+  .linjie_btn {
+    padding: 8px 22px; font-size: 13.5px; border-radius: 10px; cursor: pointer;
+    border: 1px solid var(--linjie_border); background: #ffffff; color: var(--linjie_txt);
+  }
+  .linjie_btn:hover { border-color: var(--linjie_blue); color: var(--linjie_blue); }
+</style>
+</head>
+<body>
+  <a class="linjie_back" href="index.html">← 返回首页</a>
+
+  <div class="linjie_head">
+    <h1>图片查看器 · 双指缩放</h1>
+    <p>双指捏合 1~4 倍 · 双指旋转 · 单指拖动（自动回弹） · 双击 1x↔2x</p>
+  </div>
+
+  <div class="linjie_notice" id="linjieNotice">双指缩放请用手机打开（或电脑 DevTools 设备模拟）</div>
+
+  <div class="linjie_viewport" id="linjieViewport">
+    <img class="linjie_img" id="linjieImg" src="swiper-imgs/aidu_1_1.jpg" alt="爱达·魔都号">
+  </div>
+
+  <div class="linjie_status">当前缩放：<b id="linjieScaleText">1.0×</b> ｜ 旋转：<b id="linjieRotText">0°</b></div>
+  <div class="linjie_tools"><button class="linjie_btn" id="linjieReset" type="button">复位 1×</button></div>
+
+  <script>
+    /* ===== 核心状态：scale 缩放倍数，tx/ty 平移量（元素坐标系，transform-origin 0 0），rot 旋转角（度） ===== */
+    var linjie_state = { scale: 1, tx: 0, ty: 0, rot: 0 };
+    var linjie_img = document.getElementById('linjieImg');
+    var linjie_vp = document.getElementById('linjieViewport');
+    var linjie_gesture = { mode: '', dragX: 0, dragY: 0, lastDist: 0, lastAngle: null, startTime: 0, pinchUsed: false };
+    var linjie_lastTap = null; // 上一次单击（时间+位置），用于双击判定
+
+    /* linjie_distOf —— 功能：计算两指触点的欧氏距离（捏合缩放的比例来源） */
+    function linjie_distOf(linjie_a, linjie_b) {
+      var linjie_dx = linjie_a.clientX - linjie_b.clientX;
+      var linjie_dy = linjie_a.clientY - linjie_b.clientY;
+      return Math.sqrt(linjie_dx * linjie_dx + linjie_dy * linjie_dy);
+    }
+
+    /* linjie_angleOf —— 功能：用 Math.atan2 计算两指连线的角度（弧度转度数）——
+       atan2(对边, 邻边) 对四个象限自动分类，比 acos 更稳（不会因浮点误差超出定义域） */
+    function linjie_angleOf(linjie_a, linjie_b) {
+      return Math.atan2(linjie_b.clientY - linjie_a.clientY, linjie_b.clientX - linjie_a.clientX) * 180 / Math.PI;
+    }
+
+    /* linjie_relPos —— 功能：把触点换算成容器内部坐标（相对左上角），焦点锚定公式用它 */
+    function linjie_relPos(linjie_t) {
+      var linjie_rect = linjie_vp.getBoundingClientRect();
+      return { x: linjie_t.clientX - linjie_rect.left, y: linjie_t.clientY - linjie_rect.top };
+    }
+
+    /* linjie_clampOffset —— 功能：边界钳制——保证缩放后图片始终铺满容器，任一边都不露黑底；
+       最大平移量 = (缩放后尺寸 - 容器尺寸) / 2，scale=1 时平移量必为 0 */
+    function linjie_clampOffset() {
+      var linjie_maxX = linjie_vp.clientWidth * (linjie_state.scale - 1) / 2;
+      var linjie_maxY = linjie_vp.clientHeight * (linjie_state.scale - 1) / 2;
+      if (linjie_state.tx > linjie_maxX) { linjie_state.tx = linjie_maxX; }
+      if (linjie_state.tx < -linjie_maxX) { linjie_state.tx = -linjie_maxX; }
+      if (linjie_state.ty > linjie_maxY) { linjie_state.ty = linjie_maxY; }
+      if (linjie_state.ty < -linjie_maxY) { linjie_state.ty = -linjie_maxY; }
+    }
+
+    /* linjie_apply —— 功能：把状态写入 transform；animate=true 时走 0.25s 过渡（双击/回弹），手势中为 false 即时跟随；
+       旋转写在 scale 之后（CSS 从右往左执行：rotate 先于 scale 作用在图像坐标上，绕图片中心转），
+       这样缩放焦点锚定公式依然精确成立——"缩放不跳"不受旋转影响 */
+    function linjie_apply(linjie_animate) {
+      linjie_img.classList.toggle('linjie_animate', !!linjie_animate);
+      // rotate 前/后各补一段 ±中心点的 translate，等价于"绕图片中心旋转"，避免绕左上角转出屏幕
+      var linjie_cX = linjie_vp.clientWidth / 2;
+      var linjie_cY = linjie_vp.clientHeight / 2;
+      linjie_img.style.transform = 'translate(' + linjie_state.tx + 'px,' + linjie_state.ty + 'px) scale(' + linjie_state.scale + ')' +
+        ' translate(' + linjie_cX + 'px,' + linjie_cY + 'px) rotate(' + linjie_state.rot + 'deg) translate(' + (-linjie_cX) + 'px,' + (-linjie_cY) + 'px)';
+      document.getElementById('linjieScaleText').textContent = linjie_state.scale.toFixed(1) + '×';
+      document.getElementById('linjieRotText').textContent = Math.round(linjie_state.rot) + '°';
+    }
+
+    /* linjie_zoomAt —— 功能：以 (mx,my) 为不动点从 s0 缩放到 s1——"缩放不跳"的核心公式：
+       焦点在图上的位置 f=(mx-tx)/s0 必须不变，反解新位移 tx' = mx - f*s1 = mx - (mx-tx)*(s1/s0) */
+    function linjie_zoomAt(linjie_mx, linjie_my, linjie_s0, linjie_s1, linjie_animate) {
+      linjie_state.scale = linjie_s1;
+      linjie_state.tx = linjie_mx - (linjie_mx - linjie_state.tx) * (linjie_s1 / linjie_s0);
+      linjie_state.ty = linjie_my - (linjie_my - linjie_state.ty) * (linjie_s1 / linjie_s0);
+      linjie_clampOffset();
+      linjie_apply(linjie_animate);
+    }
+
+    /* linjie_bindGestures —— 功能：手势绑定主逻辑——touchstart 分辨单/双指，touchmove 处理捏合与拖动，
+       touchend 处理 2指→1指 基准重置、松手回弹与双击判定 */
+    function linjie_bindGestures() {
+      linjie_vp.addEventListener('touchstart', function (linjie_e) {
+        linjie_e.preventDefault(); // 阻止浏览器原生缩放与鼠标模拟事件
+        if (linjie_e.touches.length === 1) {
+          // 新手势开始：记录起始时间/位置（双击判定用），清 pinch 标记
+          linjie_gesture.mode = 'ready';
+          linjie_gesture.startTime = Date.now();
+          linjie_gesture.dragX = linjie_e.touches[0].clientX;
+          linjie_gesture.dragY = linjie_e.touches[0].clientY;
+          linjie_gesture.pinchUsed = false;
+        } else if (linjie_e.touches.length === 2) {
+          // 第二根手指落下：进入捏合模式，记录两指初始距离、初始连线角度与中点；关掉过渡动画让缩放即时跟手
+          linjie_gesture.mode = 'pinch';
+          linjie_gesture.pinchUsed = true;
+          linjie_gesture.lastDist = linjie_distOf(linjie_e.touches[0], linjie_e.touches[1]);
+          linjie_gesture.lastAngle = linjie_angleOf(linjie_e.touches[0], linjie_e.touches[1]);
+          linjie_img.classList.remove('linjie_animate');
+        }
+      }, { passive: false });
+
+      linjie_vp.addEventListener('touchmove', function (linjie_e) {
+        linjie_e.preventDefault();
+        if (linjie_e.touches.length >= 2) {
+          // —— 双指捏合：增量缩放 ——
+          // 用"本次距离 / 上次距离"的比值乘当前 scale（而不是与 touchstart 的初始距离比），
+          // 每次只做小步缩放，手指抖动或换手指都不会产生跳变
+          var linjie_d = linjie_distOf(linjie_e.touches[0], linjie_e.touches[1]);
+          if (linjie_gesture.lastDist > 0) {
+            var linjie_s0 = linjie_state.scale;
+            var linjie_s1 = Math.min(4, Math.max(1, linjie_s0 * linjie_d / linjie_gesture.lastDist));
+            var linjie_midX = (linjie_relPos(linjie_e.touches[0]).x + linjie_relPos(linjie_e.touches[1]).x) / 2;
+            var linjie_midY = (linjie_relPos(linjie_e.touches[0]).y + linjie_relPos(linjie_e.touches[1]).y) / 2;
+            linjie_zoomAt(linjie_midX, linjie_midY, linjie_s0, linjie_s1, false);
+          }
+          linjie_gesture.lastDist = linjie_d;
+          // —— 双指旋转：两指连线角度的增量累加 ——
+          // 用 atan2 算本次连线角，与上次的差值即本次旋转量；atan2 输出在 ±180° 处环绕，
+          // 两指连线跨过 ±180° 分界时差值会突跳 ±360°，归一化回 ±180° 内保证旋转连续不跳变
+          if (linjie_gesture.lastAngle !== null) {
+            var linjie_ang = linjie_angleOf(linjie_e.touches[0], linjie_e.touches[1]);
+            var linjie_dAng = linjie_ang - linjie_gesture.lastAngle;
+            if (linjie_dAng > 180) { linjie_dAng -= 360; }
+            if (linjie_dAng < -180) { linjie_dAng += 360; }
+            linjie_state.rot += linjie_dAng;
+            linjie_apply(false);
+            linjie_gesture.lastAngle = linjie_ang;
+          }
+        } else if (linjie_e.touches.length === 1 && linjie_state.scale > 1) {
+          // —— 单指拖动：仅在 scale>1 时生效，移动中实时钳制边界 ——
+          if (linjie_gesture.mode !== 'drag') {
+            linjie_gesture.mode = 'drag';
+            linjie_gesture.dragX = linjie_e.touches[0].clientX;
+            linjie_gesture.dragY = linjie_e.touches[0].clientY;
+            linjie_img.classList.remove('linjie_animate');
+          }
+          linjie_state.tx += linjie_e.touches[0].clientX - linjie_gesture.dragX;
+          linjie_state.ty += linjie_e.touches[0].clientY - linjie_gesture.dragY;
+          linjie_gesture.dragX = linjie_e.touches[0].clientX;
+          linjie_gesture.dragY = linjie_e.touches[0].clientY;
+          linjie_clampOffset();
+          linjie_apply(false);
+        }
+      }, { passive: false });
+
+      linjie_vp.addEventListener('touchend', function (linjie_e) {
+        if (linjie_e.touches.length === 1) {
+          // —— 双指 → 单指：重置拖动基准为剩余手指当前位置，防止继承双指期间的位移造成跳变；角度基准一并清掉 ——
+          linjie_gesture.mode = 'drag';
+          linjie_gesture.dragX = linjie_e.touches[0].clientX;
+          linjie_gesture.dragY = linjie_e.touches[0].clientY;
+          linjie_gesture.lastDist = 0;
+          linjie_gesture.lastAngle = null;
+        } else if (linjie_e.touches.length === 0) {
+          // —— 手指全部离开：双击判定 + 松手回弹 ——
+          var linjie_now = Date.now();
+          var linjie_t = linjie_e.changedTouches[0];
+          // 双击判定：本次手势未曾捏合、按下时长 <260ms、与上一次单击间隔 <300ms 且位移 <24px
+          if (!linjie_gesture.pinchUsed && linjie_now - linjie_gesture.startTime < 260) {
+            if (linjie_lastTap && linjie_now - linjie_lastTap.time < 300 &&
+                Math.abs(linjie_t.clientX - linjie_lastTap.x) < 24 && Math.abs(linjie_t.clientY - linjie_lastTap.y) < 24) {
+              // 双击切换：1x → 以点击点为焦点放大到 2x；已放大 → 回到 1x
+              var linjie_p = linjie_relPos(linjie_t);
+              if (linjie_state.scale === 1) {
+                linjie_zoomAt(linjie_p.x, linjie_p.y, 1, 2, true);
+              } else {
+                linjie_state.rot = 0; // 回 1x 的同时把旋转角归零，恢复初始视角
+                linjie_zoomAt(linjie_p.x, linjie_p.y, linjie_state.scale, 1, true);
+              }
+              linjie_lastTap = null;
+            } else {
+              linjie_lastTap = { time: linjie_now, x: linjie_t.clientX, y: linjie_t.clientY };
+            }
+          }
+          // 松手回弹：带 0.25s 过渡吸附回合法边界
+          linjie_clampOffset();
+          linjie_apply(true);
+          linjie_gesture.mode = '';
+        }
+      });
+    }
+
+    /* linjie_bindTools —— 功能：复位按钮——带 0.25s 过渡回到 1x 居中、旋转归零 */
+    function linjie_bindTools() {
+      document.getElementById('linjieReset').addEventListener('click', function () {
+        linjie_state.scale = 1;
+        linjie_state.tx = 0;
+        linjie_state.ty = 0;
+        linjie_state.rot = 0;
+        linjie_apply(true);
+      });
+    }
+
+    /* ===== 初始化：触屏能力检测——无触屏设备加强调样式提示 ===== */
+    if (!('ontouchstart' in window)) {
+      document.getElementById('linjieNotice').classList.add('linjie_no-touch');
+      document.getElementById('linjieNotice').textContent = '当前设备无触屏：双指缩放请用手机打开（或电脑 DevTools 设备模拟）';
+    }
+    linjie_bindGestures();
+    linjie_bindTools();
+  </script>
+</body>
+</html>

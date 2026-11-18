@@ -455,6 +455,36 @@
                     <p>实时读取 linjie_prompt.md——本项目每一轮 AI 会话的原始提示词、使用模型与说明，过程性证据入口</p>
                     <a href="prompt-log.html">访问作品 →</a>
                 </article>
+                <article class="card">
+                    <h3>古诗卡片 · 上图下文</h3>
+                    <p>通过本地数据服务器（node db/server.js，端口 3004）读取 db/db.json 的诗词数据，上图下文渲染</p>
+                    <a href="poems.html">访问作品 →</a>
+                </article>
+                <article class="card">
+                    <h3>移动端手势翻页</h3>
+                    <p>touchstart/touchend 手势滑动切换美食卡片：40px 阈值、0.3s 过渡、300ms 冷却防连滑、边界提示</p>
+                    <a href="mobile-gesture.html">访问作品 →</a>
+                </article>
+                <article class="card">
+                    <h3>事件侦探 · 触摸探针</h3>
+                    <p>实时记录 touchstart/move/end/cancel/click 触发顺序、坐标与手指数，canvas 自动绘制手指轨迹（加分项）</p>
+                    <a href="touch-probe.html">访问作品 →</a>
+                </article>
+                <article class="card">
+                    <h3>图片查看器 · 双指缩放+旋转</h3>
+                    <p>捏合 1~4 倍以两指中点为基准、双指旋转（atan2 角度差累加）、单指拖动边界回弹、双击 1x↔2x（0.25s 过渡），增量缩放防跳变</p>
+                    <a href="mobile-zoom.html">访问作品 →</a>
+                </article>
+                <article class="card">
+                    <h3>摇一摇 · 抽今日菜谱</h3>
+                    <p>devicemotion 合成加速度阈值 18 判定摇动、1.5s 冷却防重复，无传感器/iOS 未授权时降级为点按抽签</p>
+                    <a href="mobile-sensor.html">访问作品 →</a>
+                </article>
+                <article class="card">
+                    <h3>4 关递进 · 移动端任务综合</h3>
+                    <p>事件侦探、手势卡片、图片查看器、摇一摇+视差四关一页看完：验收答案、坑与解决、iframe 实时演示与提交要求对照</p>
+                    <a href="mobile-all.html">访问作品 →</a>
+                </article>
                 <article class="card placeholder">
                     <h3>其余模块</h3>
                     <p>后续学习模块正在整理中，敬请期待更多网页设计实践内容。</p>
